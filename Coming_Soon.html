@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr" style="background:#0D1B2A;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0D1B2A">
+<title>Stand 4 You — Your brand. Our stand.</title>
+<meta name="description" content="Stand 4 You conçoit et réalise des stands premium sur-mesure pour les salons B2B haut de gamme.">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background-color: #0D1B2A !important; color-scheme: dark; }
+  body {
+    background-color: #0D1B2A !important;
+    color: #F5F5F0;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem 5rem;
+    position: relative;
+    overflow-x: hidden;
+  }
+  .container { position: relative; z-index: 1; max-width: 600px; width: 100%; text-align: center; }
+  .logo-wrap { margin-bottom: 2rem; animation: fadeUp 0.7s ease forwards; }
+  .logo-wrap svg { width: 56px; height: auto; }
+  .divider { width: 36px; height: 1px; background: #C9A96E; margin: 0 auto 2.5rem; animation: fadeUp 0.7s ease 0.1s both; }
+  .tagline-main {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    font-weight: 300; font-style: italic;
+    color: #F5F5F0; line-height: 1.3; margin-bottom: 0.4rem;
+    animation: fadeUp 0.7s ease 0.2s both;
+  }
+  .tagline-en {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(0.95rem, 3vw, 1.2rem);
+    font-weight: 300; font-style: italic;
+    color: #C9A96E; line-height: 1.3; margin-bottom: 2.5rem;
+    animation: fadeUp 0.7s ease 0.3s both;
+  }
+  .body-text {
+    font-size: clamp(0.88rem, 2.5vw, 0.95rem);
+    font-weight: 300; color: #CDD0C9; line-height: 1.85; margin-bottom: 1rem;
+    animation: fadeUp 0.7s ease 0.4s both;
+  }
+  .salons {
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.68rem, 1.8vw, 0.75rem);
+    font-weight: 400; color: #C9A96E;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 2.5rem; line-height: 2;
+    animation: fadeUp 0.7s ease 0.5s both;
+  }
+  .cta {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1rem, 3vw, 1.15rem);
+    font-weight: 400; color: #F5F5F0; margin-bottom: 1rem;
+    animation: fadeUp 0.7s ease 0.6s both;
+  }
+  .contact-link {
+    display: inline-block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(0.82rem, 2vw, 0.9rem);
+    font-weight: 400; color: #0B8FCC; text-decoration: none;
+    letter-spacing: 0.02em; border-bottom: 1px solid #0B5F8A;
+    padding-bottom: 2px; margin-bottom: 3rem;
+    animation: fadeUp 0.7s ease 0.68s both;
+  }
+  .closing-line {
+    font-size: clamp(0.75rem, 2vw, 0.82rem);
+    font-weight: 300; color: #6B7280; letter-spacing: 0.06em;
+    animation: fadeUp 0.7s ease 0.76s both;
+  }
+  .closing-line strong { color: #CDD0C9; font-weight: 400; }
+  .slogan-bottom {
+    position: fixed; bottom: 1.5rem; left: 0; right: 0; text-align: center;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 0.72rem; font-weight: 300; font-style: italic;
+    color: #A79162; letter-spacing: 0.08em;
+    animation: fadeUp 0.7s ease 0.9s both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (max-width: 480px) {
+    .salons { letter-spacing: 0.04em; }
+    .slogan-bottom { font-size: 0.65rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo-wrap">
+    <svg viewBox="0 0 100 116" xmlns="http://www.w3.org/2000/svg" width="56">
+      <polygon points="1,29 50,1 50,58"    fill="#C1A36F"/>
+      <polygon points="50,1 99,29 50,58"   fill="#A79162"/>
+      <polygon points="99,29 99,87 50,58"  fill="#0D1B2A"/>
+      <polygon points="99,87 50,115 50,58" fill="#1281AE"/>
+      <polygon points="50,115 1,87 50,58"  fill="#CDD0C9"/>
+      <polygon points="1,87 1,29 50,58"    fill="#F4F5F0"/>
+    </svg>
+  </div>
+  <div class="divider"></div>
+  <p class="tagline-main">Votre marque mérite mieux qu'un stand.</p>
+  <p class="tagline-en">Your brand deserves more than just a stand.</p>
+  <p class="body-text">Stand 4 You conçoit et réalise des stands premium sur-mesure<br>pour les salons B2B haut de gamme.</p>
+  <p class="salons">MIPIM &nbsp;·&nbsp; MAPIC &nbsp;·&nbsp; TFWA &nbsp;·&nbsp; Monaco Yacht Show<br>et tous les salons qui comptent</p>
+  <p class="cta">Vous avez un salon en vue ?<br>Parlons de votre projet.</p>
+  <a href="mailto:contact@stand4you.com" class="contact-link">contact@stand4you.com</a>
+  <p class="closing-line">Notre site arrive. <strong>Nous, on est déjà là.</strong></p>
+</div>
+<p class="slogan-bottom">Your brand. Our stand.</p>
+</body>
+</html>
