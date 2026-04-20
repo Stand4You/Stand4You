@@ -400,14 +400,11 @@ async function atLoad(recordId){
     st.status=(devis.Statut||'Brouillon').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     if(devis.Surface_m2)st.ctx.salonSurface=String(devis['Surface_(m2)']||'');
 
-    /* Charge le client lié */
+    /* Charge le client lié — les champs linked retournent des record IDs */
     if(devis.CLIENT_Nom&&devis.CLIENT_Nom.length){
-      const clientId=Array.isArray(devis.CLIENT_Nom)?null:null;
-      /* Les champs linkés retournent des noms ; on cherche par nom */
-      const clientName=Array.isArray(devis.CLIENT_Nom)?devis.CLIENT_Nom[0]:devis.CLIENT_Nom;
-      const cRec=await atFind(TBL_CLIENT,`{Nom}="${clientName}"`);
-      if(cRec){
-        const cf=cRec.fields;
+      const clientRecId=Array.isArray(devis.CLIENT_Nom)?devis.CLIENT_Nom[0]:devis.CLIENT_Nom;
+      if(clientRecId.startsWith('rec')){
+        const cf=await atGet(TBL_CLIENT,clientRecId);
         st.ctx.cliSociete=cf.Nom||'';
         st.ctx.cliContact=cf.Contact_Nom||'';
         st.ctx.cliEmail=cf.Email||'';
@@ -415,27 +412,30 @@ async function atLoad(recordId){
         const nature=(cf.Nature_TVA||'fr').toLowerCase();
         st.ctx.cliNature=nature;
         uTVA(nature==='eu'?'eu':nature==='export'?'export':'fr');
-        st.ctx._atClientId=cRec.id;
+        st.ctx._atClientId=clientRecId;
       }
     }
 
     /* Charge l'événement lié */
-    if(devis.EVENEMENT){
-      const evtName=Array.isArray(devis.EVENEMENT)?devis.EVENEMENT[0]:devis.EVENEMENT;
-      const eRec=await atFind(TBL_EVNT,`{Fx_Nom}="${evtName}"`);
-      if(eRec){
-        const ef=eRec.fields;
-        st.ctx.salonNom=Array.isArray(ef.Salon)?ef.Salon[0]:(ef.Salon||'');
+    if(devis.EVENEMENT&&devis.EVENEMENT.length){
+      const evtRecId=Array.isArray(devis.EVENEMENT)?devis.EVENEMENT[0]:devis.EVENEMENT;
+      if(evtRecId.startsWith('rec')){
+        const ef=await atGet(TBL_EVNT,evtRecId);
+        /* Nom du salon depuis le champ texte Fx_Nom ex: "SIMPPAR 2026" */
+        st.ctx.salonNom=ef.Salon?(Array.isArray(ef.Salon)?ef.Salon[0]:ef.Salon):(ef.Fx_Nom||'');
         /* Dates */
         const d1=ef.Date_Debut?new Date(ef.Date_Debut).toLocaleDateString('fr-FR'):null;
         const d2=ef.Date_Fin?new Date(ef.Date_Fin).toLocaleDateString('fr-FR'):null;
         st.ctx.salonDates=d1&&d2?`${d1} – ${d2}`:d1||'';
-        st.ctx._atEvtId=eRec.id;
-        /* Lieu depuis la table Salon */
-        if(ef.Salon){
-          const sName=Array.isArray(ef.Salon)?ef.Salon[0]:ef.Salon;
-          const sRec=await atFind(TBL_SALON,`{Nom}="${sName}"`);
-          if(sRec)st.ctx.salonLieu=sRec.fields.Adresse||'';
+        st.ctx._atEvtId=evtRecId;
+        /* Lieu depuis la table Salon via record ID */
+        if(ef.Salon&&ef.Salon.length){
+          const salonRecId=Array.isArray(ef.Salon)?ef.Salon[0]:ef.Salon;
+          if(salonRecId.startsWith('rec')){
+            const sf=await atGet(TBL_SALON,salonRecId);
+            st.ctx.salonNom=sf.Nom||st.ctx.salonNom;
+            st.ctx.salonLieu=sf.Adresse||'';
+          }
         }
       }
     }
