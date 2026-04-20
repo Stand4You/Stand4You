@@ -1240,7 +1240,7 @@ function printD(){
   /* Détecte ?id=recXXX dans l'URL */
   const params=new URLSearchParams(window.location.search);
   const recId=params.get('id');
-  if(recId&&recId.startsWith('rec')&&AT_TOKEN!=='patau2NhonaLVWY43.1524c722571dccf4583cb8d248224bbce77b1c89dbbfbd5272ef129a0a137438'){
+  if(recId&&recId.startsWith('rec')){
     render(); /* Affiche l'UI vide pendant le chargement */
     await atLoad(recId);
   } else {
