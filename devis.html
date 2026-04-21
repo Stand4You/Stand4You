@@ -334,7 +334,7 @@ function genDevisNum(){
 
 const st={
   type:'n',
-  sections:DEFS_IDX.map((ci,i)=>{const s=mkSec(ci,i);if(i===0)s.open=true;return s;}),
+  sections:DEFS_IDX.map((ci,i)=>{const s=mkSec(ci,i);return s;}),
   remise:'0',rt:'%',tvaMode:'fr',acp:'50',lang:'fr',
   legal:JSON.parse(JSON.stringify(LEGAL_DEF)),
   ctx:{num:'',dateEmission:todayStr(),validite:'7',
@@ -533,7 +533,7 @@ function lsLoad(num){
 function lsNew(){
   nSid=DEFS_IDX.length;nLid=300;
   st.type='n';
-  st.sections=DEFS_IDX.map((ci,i)=>{const s=mkSec(ci,i);if(i===0)s.open=true;return s;});
+  st.sections=DEFS_IDX.map((ci,i)=>{const s=mkSec(ci,i);return s;});
   st.remise='0';st.rt='%';st.tvaMode='fr';st.acp='50';
   st.legal=JSON.parse(JSON.stringify(LEGAL_DEF));
   st.status='brouillon';st.savedAt=null;st._atMode=false;
@@ -665,7 +665,7 @@ function atSrcTag(txt){return`<div class="at-src">⬡ ${txt||'Airtable'}</div>`;
 function ctxHTML(){
   const c=st.ctx;
   const validDate=()=>{
-    try{const d=new Date(c.dateEmission);d.setDate(d.getDate()+(parseInt(c.validite)||7)*7);return d.toLocaleDateString('fr-FR');}catch{return'—';}
+    try{const d=new Date(c.dateEmission);d.setDate(d.getDate()+(parseInt(c.validite)||7));return d.toLocaleDateString('fr-FR');}catch{return'—';}
   };
   const readonly=st.status==='accepte'||st.status==='refuse';
   return`<div class="context-block">
@@ -680,12 +680,12 @@ function ctxHTML(){
     ${c.ctxOpen?`<div class="context-body">
       <div class="ctx-group">
         <h4>${t('clientSociete')}</h4>
-        <div class="ctx-field"><label>${t('clientSociete')}</label><input type="text" value="${esc(c.cliSociete)}" placeholder="Acme Corp." ${readonly?'readonly':''} oninput="uCtx('cliSociete',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
-        <div class="ctx-field"><label>${t('clientContact')}</label><input type="text" value="${esc(c.cliContact)}" placeholder="Jean Dupont" ${readonly?'readonly':''} oninput="uCtx('cliContact',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
-        <div class="ctx-field"><label>${t('clientEmail')}</label><input type="email" value="${esc(c.cliEmail)}" placeholder="jean@acme.com" ${readonly?'readonly':''} oninput="uCtx('cliEmail',this.value);scheduleSave()"></div>
-        <div class="ctx-field"><label>${t('clientAdresse')}</label><input type="text" value="${esc(c.cliAdresse)}" placeholder="Adresse complète" ${readonly?'readonly':''} oninput="uCtx('cliAdresse',this.value);scheduleSave()"></div>
+        <div class="ctx-field"><label>${t('clientSociete')}</label><input type="text" value="${esc(c.cliSociete)}" placeholder="Acme Corp." ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliSociete',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
+        <div class="ctx-field"><label>${t('clientContact')}</label><input type="text" value="${esc(c.cliContact)}" placeholder="Jean Dupont" ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliContact',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
+        <div class="ctx-field"><label>${t('clientEmail')}</label><input type="email" value="${esc(c.cliEmail)}" placeholder="jean@acme.com" ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliEmail',this.value);scheduleSave()"></div>
+        <div class="ctx-field"><label>${t('clientAdresse')}</label><input type="text" value="${esc(c.cliAdresse)}" placeholder="Adresse complète" ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliAdresse',this.value);scheduleSave()"></div>
         <div class="ctx-field"><label>${t('clientNature')}</label>
-          <select ${readonly?'disabled':''} onchange="uCtx('cliNature',this.value);uTVA(this.value==='eu'?'eu':this.value==='export'?'export':'fr');scheduleSave()">
+          <select ${readonly||st._atMode?'disabled':''} onchange="uCtx('cliNature',this.value);uTVA(this.value==='eu'?'eu':this.value==='export'?'export':'fr');scheduleSave()">
             <option value="fr"${c.cliNature==='fr'?' selected':''}>France (TVA 20%)</option>
             <option value="eu"${c.cliNature==='eu'?' selected':''}>UE (Autoliquidation)</option>
             <option value="export"${c.cliNature==='export'?' selected':''}>Hors UE (TVA non applicable)</option>
@@ -694,25 +694,19 @@ function ctxHTML(){
       </div>
       <div class="ctx-group">
         <h4>${t('salonNom')}</h4>
-        <div class="ctx-field"><label>${t('salonNom')}</label><input type="text" value="${esc(c.salonNom)}" placeholder="MIPIM 2027" ${readonly?'readonly':''} oninput="uCtx('salonNom',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
-        <div class="ctx-field"><label>${t('salonLieu')}</label><input type="text" value="${esc(c.salonLieu)}" placeholder="Palais des Festivals, Cannes" ${readonly?'readonly':''} oninput="uCtx('salonLieu',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
-        <div class="ctx-field"><label>${t('salonDates')}</label><input type="text" value="${esc(c.salonDates)}" placeholder="11-14 mars 2027" ${readonly?'readonly':''} oninput="uCtx('salonDates',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
+        <div class="ctx-field"><label>${t('salonNom')}</label><input type="text" value="${esc(c.salonNom)}" placeholder="MIPIM 2027" ${readonly||st._atMode?'readonly':''} oninput="uCtx('salonNom',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
+        <div class="ctx-field"><label>${t('salonLieu')}</label><input type="text" value="${esc(c.salonLieu)}" placeholder="Palais des Festivals, Cannes" ${readonly||st._atMode?'readonly':''} oninput="uCtx('salonLieu',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
+        <div class="ctx-field"><label>${t('salonDates')}</label><input type="text" value="${esc(c.salonDates)}" placeholder="11-14 mars 2027" ${readonly||st._atMode?'readonly':''} oninput="uCtx('salonDates',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
         <div class="ctx-field"><label>${t('salonSurface')}</label><input type="number" value="${esc(c.salonSurface)}" placeholder="36" ${readonly?'readonly':''} oninput="uCtx('salonSurface',this.value);scheduleSave()"></div>
       </div>
       <div class="ctx-group">
         <h4>${t('devisNum')}</h4>
-        <div class="ctx-field"><label>${t('devisNum')}</label><input type="text" value="${esc(c.num)}" ${readonly?'readonly':''} oninput="uCtx('num',this.value)">${st._atMode?atSrcTag():''}</div>
         <div class="ctx-field"><label>${t('devisDate')}</label><input type="date" value="${esc(c.dateEmission)}" ${readonly?'readonly':''} oninput="uCtx('dateEmission',this.value)"></div>
-        <div class="ctx-field"><label>${st.lang==='fr'?'Validité (semaines)':'Valid for (weeks)'}</label><input type="number" value="${esc(c.validite)}" min="1" max="12" ${readonly?'readonly':''} oninput="uCtx('validite',this.value)">
+        <div class="ctx-field"><label>${st.lang==='fr'?'Validité (jours)':'Valid for (days)'}</label><input type="number" value="${esc(c.validite)}" min="1" max="90" ${readonly?'readonly':''} oninput="uCtx('validite',this.value)">
           <div style="font-size:10px;color:var(--sgray);margin-top:3px">${st.lang==='fr'?'Expire le':'Expires'} ${validDate()}</div>
         </div>
         <div class="ctx-field"><label>Statut</label>
-          <select onchange="uStatus(this.value)">
-            <option value="brouillon"${st.status==='brouillon'?' selected':''}>${t('statusBrouillon')}</option>
-            <option value="envoye"${st.status==='envoye'?' selected':''}>${t('statusEnvoye')}</option>
-            <option value="accepte"${st.status==='accepte'?' selected':''}>${t('statusAccepte')}</option>
-            <option value="refuse"${st.status==='refuse'?' selected':''}>${t('statusRefuse')}</option>
-          </select>
+          <div style="font-size:12px;padding:5px 8px;border:0.5px solid rgba(13,27,42,.15);border-radius:5px;background:rgba(13,27,42,.03);color:var(--sgray)">${t('status'+st.status.charAt(0).toUpperCase()+st.status.slice(1))||st.status} <span style="font-size:9px;font-style:italic">${st._atMode?'— modifiable dans Airtable':'— sauvegardé localement'}</span></div>
         </div>
       </div>
     </div>`:''}
@@ -1070,7 +1064,7 @@ function buildPDF(){
   const c=st.ctx;
   const isEn=st.lang==='en';
   const todayFmt=new Date(c.dateEmission||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const validDate=()=>{try{const d=new Date(c.dateEmission);d.setDate(d.getDate()+(parseInt(c.validite)||7)*7);return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return'—';}};
+  const validDate=()=>{try{const d=new Date(c.dateEmission);d.setDate(d.getDate()+(parseInt(c.validite)||7));return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return'—';}};
   const lg=getLegal();
 
   const SVG_PDF=`<svg width="36" height="36" viewBox="0 0 100 115" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="50,0 100,28.75 100,57.5 50,28.75" fill="#C1A36F"/><polygon points="50,0 0,28.75 0,57.5 50,28.75" fill="#A79162"/><polygon points="0,57.5 50,28.75 50,86.25 0,86.25" fill="#F4F5F0"/><polygon points="100,57.5 50,28.75 50,86.25 100,86.25" fill="#0D1B2A"/><polygon points="0,86.25 50,86.25 50,115 0,115" fill="#CDD0C9"/><polygon points="100,86.25 50,86.25 50,115 100,115" fill="#1281AE"/></svg>`;
@@ -1145,18 +1139,18 @@ footer.rf{position:fixed;bottom:0;left:0;right:0;height:14mm;display:flex;align-
 table.t{width:100%;border-collapse:collapse;margin-bottom:14px}
 table.t thead th{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--sg);padding:4px 8px;border-bottom:1px solid var(--navy);text-align:left}
 table.t thead th:last-child{text-align:right;width:120px}
-tr.sr td{background:rgba(13,27,42,.03);border-top:0.5px solid rgba(13,27,42,.1);padding:6px 8px;font-size:12px;font-weight:500;break-inside:avoid}
+tr.sr td{background:rgba(13,27,42,.03);border-top:0.5px solid rgba(13,27,42,.1);padding:6px 8px;font-size:12px;font-weight:500;break-inside:avoid;break-before:avoid}
 td.cn{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);width:22px;font-size:13px}
 td.ca{text-align:right;white-space:nowrap}
-tr.ir td{padding:2px 8px 2px 24px;border-bottom:0.5px solid rgba(13,27,42,.04)}
+tr.ir td{padding:2px 8px 2px 24px;border-bottom:0.5px solid rgba(13,27,42,.04);break-inside:avoid}
 td.ci{font-size:11px;color:var(--sg)}
 span.id{display:block;font-style:italic;font-size:9px;color:#9ca3af;margin-top:1px}
-tr.pr td{padding:4px 8px 1px 14px}
+tr.pr td{padding:4px 8px 1px 14px;break-inside:avoid}
 td.cph{font-size:9px;font-weight:600;letter-spacing:.07em;color:var(--gold);text-transform:uppercase}
-tr.par td{background:rgba(201,169,110,.06);border-top:0.5px dashed rgba(201,169,110,.3);padding:4px 8px}
+tr.par td{background:rgba(201,169,110,.06);border-top:0.5px dashed rgba(201,169,110,.3);padding:4px 8px;break-inside:avoid}
 td.cpl{font-size:11px;color:var(--sg);font-style:italic;padding-left:14px}
 .bo{font-size:9px;color:var(--gold);border:0.5px solid rgba(201,169,110,.6);padding:1px 6px;border-radius:3px}
-.tw{display:flex;justify-content:flex-end;margin-bottom:16px}
+.tw{display:flex;justify-content:flex-end;margin-bottom:16px;break-inside:avoid}
 .ti{width:290px}.ti table{width:100%;border-collapse:collapse}
 td.tl{color:var(--sg);padding:3px 4px;font-size:12px}
 td.tv{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding:3px 4px;font-size:12px}
@@ -1164,17 +1158,25 @@ tr.rm td{font-weight:500;font-size:13px;color:var(--navy)}
 tr.ra td{border-top:0.5px solid rgba(13,27,42,.15);padding-top:6px;font-weight:500;font-size:13px;color:var(--navy)}
 tr.rt td{border-top:1.5px solid var(--navy);padding-top:6px;font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--navy)}
 tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
-.ls{margin-bottom:11px;break-inside:avoid}
-.lt{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--navy);border-left:3px solid var(--gold);padding-left:7px;margin-bottom:5px}
-.lb{font-size:11px;color:var(--sg);line-height:1.65}
-.lp{margin-bottom:3px;orphans:3;widows:3}
+.ls{margin-bottom:14px;break-inside:avoid;page-break-inside:avoid}
+.lt{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--navy);border-left:3px solid var(--gold);padding-left:7px;margin-bottom:6px}
+.lb{font-size:11px;color:var(--sg);line-height:1.7}
+.lp{margin-bottom:4px;orphans:4;widows:4}
 .cgv-block{break-before:page;padding-top:13mm}
-.accept-box{border:0.5px solid rgba(201,169,110,.5);border-radius:6px;padding:10px 13px;margin:16px 0 12px;background:rgba(201,169,110,.06);break-inside:avoid}
-.accept-txt{font-size:10px;color:var(--navy);line-height:1.65;font-style:italic}
-.sw{display:flex;gap:20px;break-inside:avoid}
-.sbox{flex:1;border:0.5px solid rgba(13,27,42,.2);border-radius:6px;padding:10px;min-height:74px}
-.sl{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--sg);margin-bottom:4px}
-.sn{font-size:9px;color:#9ca3af;margin-bottom:18px}
+.cgv-hdr{margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--gold)}
+.cgv-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy);display:block}
+.cgv-sub{font-size:9px;color:var(--sg);letter-spacing:.05em;text-transform:uppercase;margin-top:3px;display:block}
+.cgv-art{margin-bottom:12px;break-inside:avoid;page-break-inside:avoid}
+.cgv-art-title{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:4px;border-left:2px solid var(--gold);padding-left:6px}
+.cgv-art-body{font-size:10px;color:var(--sg);line-height:1.7}
+.cgv-art-body p{margin-bottom:4px;orphans:3;widows:3}
+.cgv-footer{margin-top:14px;font-size:8px;color:#9ca3af;font-style:italic;text-align:center;border-top:0.5px solid rgba(13,27,42,.1);padding-top:6px}
+.accept-box{border:0.5px solid rgba(201,169,110,.5);border-radius:6px;padding:12px 14px;margin:18px 0 14px;background:rgba(201,169,110,.06);break-inside:avoid}
+.accept-txt{font-size:10px;color:var(--navy);line-height:1.7;font-style:italic}
+.sw{display:flex;gap:20px;break-inside:avoid;margin-top:6px}
+.sbox{flex:1;border:0.5px solid rgba(13,27,42,.2);border-radius:6px;padding:14px;min-height:110px}
+.sl{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--sg);margin-bottom:6px}
+.sn{font-size:9px;color:#9ca3af;margin-bottom:28px}
 .si{border-bottom:0.5px solid rgba(13,27,42,.15)}
 .pb{text-align:center;padding:20px 0 0}
 .pbt{background:var(--navy);color:#fff;border:none;border-radius:7px;padding:11px 26px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer}
@@ -1220,7 +1222,22 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
   </div>
   <div class="cgv-block">
     <div class="lt">${t('cgvTitle')}</div>
-    <p style="font-size:10px;color:var(--sg);font-style:italic;margin-top:4px">[${isEn?'CGPLV Stand 4 You to be inserted here':'CGPLV Stand 4 You à insérer ici'}]</p>
+    ${isEn?`<p style="font-size:10px;color:var(--sg);font-style:italic;margin-top:4px">[English version of CGPLV to be inserted]</p>`:`<div class="cgv-hdr">
+<span class="cgv-title">Conditions Générales de Prestations, Location et Vente</span>
+<span class="cgv-sub">Stand 4 You · Version 1.0 · En vigueur à compter d'avril 2026</span>
+</div>
+<div class="cgv-art"><div class="cgv-art-title">Article 1 — Champ d'application et opposabilité</div><div class="cgv-art-body"><p>Les présentes Conditions Générales de Prestations, Location et Vente (ci-après « CGPLV ») régissent l'ensemble des relations commerciales entre Stand 4 You (ci-après « S4U »), société par actions simplifiée au capital de 5 000 €, immatriculée au RCS de Nice sous le numéro 102 806 783, et tout client professionnel (ci-après « le Client ») passant commande auprès de S4U, quelle que soit la nature de la prestation : conception, fabrication, montage, location, vente ou démontage de stands et espaces d'exposition.</p><p>Les CGPLV sont remises au Client préalablement à toute commande, notamment en annexe du devis. Leur acceptation est réputée acquise dès la signature du devis par le Client, laquelle vaut acceptation expresse et sans réserve des présentes conditions. Toute clause contraire figurant dans un document du Client est inopposable à S4U, sauf accord écrit et signé par S4U.</p></div></div>
+<div class="cgv-art"><div class="cgv-art-title">Article 2 — Formation du contrat</div><div class="cgv-art-body"><p>Toute commande est précédée d'un devis détaillé, valable trente (30) jours calendaires à compter de sa date d'émission, sauf mention contraire. Le contrat est formé à la réception par S4U du devis signé par le Client, accompagné du règlement de l'acompte défini à l'article 7.2. Toute modification ultérieure de la commande doit faire l'objet d'un avenant écrit signé par les deux parties.</p></div></div>
+<div class="cgv-art"><div class="cgv-art-title">Article 3 — Propriété intellectuelle</div><div class="cgv-art-body"><p>Les plans, études, esquisses, maquettes, perspectives 3D, fichiers numériques, cahiers des charges, calques, visuels et tout autre document ou création réalisés par S4U dans le cadre de sa mission sont et demeurent la propriété exclusive de S4U, même lorsqu'ils ont été produits à la demande ou aux frais du Client. Leur reproduction, transmission, exploitation ou divulgation à des tiers sont strictement interdites sans l'accord écrit préalable de S4U. En cas de commande ferme et de règlement intégral du prix, S4U concède au Client une licence d'utilisation non exclusive, limitée à l'usage du stand objet de la commande.</p></div></div>
+<div class="cgv-art"><div class="cgv-art-title">Article 4 — Exécution, sous-traitance, délais et force majeure</div><div class="cgv-art-body"><p>4.1  Exécution et sous-traitance</p><p>S4U s'engage à exécuter les prestations commandées avec le soin, la diligence et le professionnalisme attendus d'un opérateur de son secteur. S4U se réserve le droit de recourir à des sous-traitants pour tout ou partie des prestations, sous sa responsabilité et sans que cela n'affecte les obligations envers le Client.</p><p>Les matériaux et structures livrés par S4U sont conformes à la réglementation en vigueur à la date de l'événement. S4U se réserve le droit de procéder à des adaptations techniques mineures sans en informer préalablement le Client, dès lors que ces adaptations n'affectent pas l'esthétique ni les fonctionnalités du stand.</p><p>4.2  Délais</p><p>Les délais d'exécution courent à compter de la réception simultanée du devis signé, de l'acompte exigible et de l'ensemble des éléments nécessaires à l'exécution (brief, visuels, plans, accréditations salon, etc.). S4U ne saurait être tenue responsable d'un retard imputable à une transmission tardive de ces éléments par le Client ou par l'organisateur du salon.</p><p>4.3  Force majeure</p><p>S4U ne saurait être tenue responsable d'un retard ou d'une inexécution résultant d'un cas de force majeure au sens de l'article 1218 du Code civil, notamment : catastrophes naturelles, grèves générales, conflits armés, décisions administratives ou gouvernementales, pandémies, ou tout événement imprévisible et irrésistible rendant impossible l'exécution de ses obligations. S4U informera le Client dès que possible et les parties se concerteront de bonne foi sur les suites à donner.</p></div></div>
+<div class="cgv-art"><div class="cgv-art-title">Article 5 — Réception, garde, détérioration et réclamations</div><div class="cgv-art-body"><p>Sauf cas de force majeure, S4U garantit au Client la jouissance normale du matériel et des équipements fournis et installés, conformément aux spécifications du devis accepté.</p><p>Le transfert de responsabilité intervient à compter du dépôt ou de l'installation sur les lieux d'exécution ; à partir de ce moment, le Client est réputé avoir pris possession du matériel et en assume la garde.</p><p>Le Client est responsable de toute détérioration, perte ou disparition de matériaux ou équipements mis à sa disposition, survenant entre la prise de possession et la restitution à S4U. Toute réclamation relative à l'exécution des prestations doit être formulée par écrit dans un délai de quarante-huit (48) heures suivant la constatation du problème.</p></div></div>
+<div class="cgv-art"><div class="cgv-art-title">Article 6 — Réserve de propriété</div><div class="cgv-art-body"><p>En location : l'ensemble des matériaux, structures modulaires, mobiliers et équipements fournis par S4U demeurent, à tout moment, la propriété exclusive de S4U. Le Client dispose d'un droit d'usage limité à la durée et à l'objet définis dans le devis accepté.</p><p>En vente : la propriété des marchandises ne sera transférée au Client qu'après complet paiement du prix, en principal, frais et taxes, nonobstant la livraison et la prise de possession.</p><p>Dans les deux cas, le Client s'interdit de transformer, nantir, céder, louer, prêter, déplacer, donner en gage ou laisser saisir les biens fournis par S4U sans son accord écrit préalable.</p></div></div>
+<div class="cgv-art"><div class="cgv-art-title">Article 7 — Conditions financières</div><div class="cgv-art-body"><p>7.1  Tarifs</p><p>Tous les prix figurant dans les devis sont exprimés en euros hors taxes (HT). La TVA applicable est celle en vigueur à la date de facturation. S4U se réserve le droit de réviser ses tarifs à tout moment ; les prestations commandées sont toutefois facturées au prix figurant dans le devis accepté.</p><p>7.2  Acomptes et échéances</p><p>Un acompte est exigible à la confirmation de commande ; son montant est défini dans le devis. Le solde est exigible à la livraison ou à la première journée d'ouverture du salon, sauf modalités différentes expressément prévues dans le devis.</p><p>7.3  Pénalités de retard et défaillance</p><p>Toute facture non réglée à son échéance porte de plein droit, sans mise en demeure préalable, des pénalités de retard calculées au taux de trois (3) fois le taux d'intérêt légal en vigueur, ainsi qu'une indemnité forfaitaire de recouvrement de quarante (40) euros conformément à l'article D. 441-5 du Code de commerce. En cas de défaillance de paiement, S4U se réserve le droit de suspendre ou d'interrompre l'exécution de la prestation en cours sans que cela puisse engager sa responsabilité.</p><p>7.4  Annulation par le Client</p><p>En cas d'annulation de la commande par le Client, les indemnités forfaitaires suivantes sont dues à S4U, sans préjudice de tout autre dommage subi :</p><p>Annulation après versement de l'acompte et plus de 60 jours ouvrés avant le premier jour de montage : l'acompte versé reste acquis à S4U à titre d'indemnité.</p><p>Annulation entre 60 et 30 jours ouvrés avant le premier jour de montage : 75 % du montant HT total.</p><p>Annulation à moins de 30 jours ouvrés avant le premier jour de montage : 100 % du montant HT total.</p><p>Dans tous les cas, les fabrications spécifiques, commandes de matériaux et prestations déjà engagées au moment de l'annulation sont dues intégralement par le Client.</p><p>7.5  Report ou annulation du salon</p><p>Report ou annulation à l'initiative du Client (abandon ou report de sa participation) : les dispositions de l'article 7.4 s'appliquent.</p><p>Annulation ou report de l'événement décidé par l'organisateur : S4U ne peut être tenue responsable des conséquences d'une telle décision. Les frais et prestations déjà engagés par S4U sont dus par le Client. S4U proposera, dans la mesure du possible, un report ou un avoir pour les prestations non encore engagées.</p></div></div>
+<div class="cgv-art"><div class="cgv-art-title">Article 8 — Responsabilité de S4U</div><div class="cgv-art-body"><p>La responsabilité de S4U est strictement limitée aux obligations expressément définies dans la commande acceptée. Elle ne saurait être engagée pour des dommages indirects, immatériels ou consécutifs subis par le Client (perte de chiffre d'affaires, manque à gagner, préjudice d'image, etc.). En tout état de cause, la responsabilité totale de S4U au titre d'une commande est plafonnée au montant HT de ladite commande.</p></div></div>
+<div class="cgv-art"><div class="cgv-art-title">Article 9 — Confidentialité et données personnelles</div><div class="cgv-art-body"><p>Les parties s'engagent mutuellement à traiter comme strictement confidentielles toutes les informations, documents, données techniques, commerciales ou stratégiques échangés dans le cadre de leur relation, et à ne pas les divulguer à des tiers sans accord écrit préalable. Cet engagement de confidentialité s'applique pendant toute la durée de la relation contractuelle et durant trois (3) ans après son terme.</p><p>Les données personnelles collectées dans le cadre de la relation commerciale (coordonnées du Client, de son représentant légal et de ses contacts) sont traitées par S4U en qualité de responsable de traitement, conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés. Ces données sont utilisées aux seules fins d'exécution du contrat, de gestion de la relation client et, avec le consentement du Client, de prospection commerciale. Elles ne sont pas cédées à des tiers. Le Client dispose d'un droit d'accès, de rectification, d'effacement et de portabilité de ses données, qu'il peut exercer à l'adresse contact@stand4you.com.</p></div></div>
+<div class="cgv-art"><div class="cgv-art-title">Article 10 — Résiliation, droit applicable et dispositions finales</div><div class="cgv-art-body"><p>En cas de manquement grave d'une partie à ses obligations contractuelles, non régularisé dans un délai de quinze (15) jours suivant mise en demeure par lettre recommandée avec avis de réception, l'autre partie pourra résilier le contrat de plein droit, sans préjudice de tout dommage et intérêt.</p><p>Les présentes CGPLV sont régies par le droit français. Tout litige relatif à leur interprétation, leur exécution ou leur validité sera soumis, à défaut de règlement amiable, à la compétence exclusive du Tribunal de Commerce de Nice, même en cas de pluralité de défendeurs ou d'appel en garantie. Le Client professionnel renonce expressément à se prévaloir de la compétence de toute autre juridiction.</p></div></div>
+<div class="cgv-footer">Document confidentiel — propriété de Stand 4 You. Reproduction interdite sans autorisation expresse.</div>
+<div class="cgv-art"><div class="cgv-art-title">Article 10 — Résiliation, droit applicable et dispositions finales</div><div class="cgv-art-body"><p>En cas de manquement grave d'une partie à ses obligations contractuelles, non régularisé dans un délai de quinze (15) jours suivant mise en demeure par lettre recommandée avec avis de réception, l'autre partie pourra résilier le contrat de plein droit, sans préjudice de tout dommage et intérêt.</p><p>Les présentes CGPLV sont régies par le droit français. Tout litige relatif à leur interprétation, leur exécution ou leur validité sera soumis, à défaut de règlement amiable, à la compétence exclusive du Tribunal de Commerce de Nice, même en cas de pluralité de défendeurs ou d'appel en garantie. Le Client professionnel renonce expressément à se prévaloir de la compétence de toute autre juridiction.</p></div></div>`}
   </div>
   <div class="pb np">
     <button class="pbt" onclick="window.print()">🖨️\u00a0\u00a0${isEn?'Print / Save as PDF':'Imprimer / Enregistrer en PDF'}</button>
