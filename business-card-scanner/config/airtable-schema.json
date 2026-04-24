@@ -1,0 +1,148 @@
+{
+  "_comment": "Référence des champs à créer dans Airtable. Créer les champs manuellement dans l'interface Airtable en respectant le type exact indiqué dans 'airtable_type'.",
+  "table_name": "Contacts Salons",
+  "fields": [
+    {
+      "name": "Prénom",
+      "airtable_type": "Single line text",
+      "make_variable": "{{3.prenom}}",
+      "required": true
+    },
+    {
+      "name": "Nom",
+      "airtable_type": "Single line text",
+      "make_variable": "{{3.nom}}",
+      "required": true
+    },
+    {
+      "name": "Société",
+      "airtable_type": "Single line text",
+      "make_variable": "{{3.societe}}",
+      "required": false
+    },
+    {
+      "name": "Fonction",
+      "airtable_type": "Single line text",
+      "make_variable": "{{3.fonction}}",
+      "required": false
+    },
+    {
+      "name": "Email",
+      "airtable_type": "Email",
+      "make_variable": "{{3.email}}",
+      "required": false,
+      "note": "Type 'Email' (pas Single line text) pour validation automatique du format"
+    },
+    {
+      "name": "Téléphone",
+      "airtable_type": "Phone number",
+      "make_variable": "{{3.telephone}}",
+      "required": false
+    },
+    {
+      "name": "Autres contacts",
+      "airtable_type": "Long text",
+      "make_variable": "{{3.autres_contacts}}",
+      "required": false,
+      "note": "Emails et téléphones supplémentaires détectés, séparés par des virgules"
+    },
+    {
+      "name": "Commentaire terrain",
+      "airtable_type": "Long text",
+      "make_variable": "{{1.commentaire}}",
+      "required": false,
+      "note": "Saisi par l'utilisateur dans Make Mobile au moment du scan"
+    },
+    {
+      "name": "Salon / Événement",
+      "airtable_type": "Single select",
+      "make_variable": "{{1.salon}}",
+      "required": true,
+      "options": [
+        "SIAL",
+        "Equiphotel",
+        "Batimat",
+        "VivaTech",
+        "SIDO Lyon",
+        "MWC Barcelona",
+        "CES Las Vegas",
+        "Maison & Objet",
+        "Autre"
+      ],
+      "note": "Ajouter de nouveaux salons ici ET dans Make Mobile avant chaque événement"
+    },
+    {
+      "name": "Date de scan",
+      "airtable_type": "Date",
+      "make_variable": "{{formatDate(1.timestamp; \"DD/MM/YYYY\")}}",
+      "required": false,
+      "format": "European (DD/MM/YYYY)"
+    },
+    {
+      "name": "Statut de relance",
+      "airtable_type": "Single select",
+      "make_variable": "À contacter",
+      "required": false,
+      "default": "À contacter",
+      "options": [
+        "À contacter",
+        "En cours",
+        "Relancé 1x",
+        "Relancé 2x",
+        "Converti",
+        "Abandonné"
+      ]
+    },
+    {
+      "name": "Confiance extraction",
+      "airtable_type": "Single select",
+      "make_variable": "{{3.confidence}}",
+      "required": false,
+      "options": [
+        "High",
+        "Medium",
+        "Low"
+      ],
+      "note": "Valeur retournée par Claude. Sert de filtre qualité pour la revue manuelle."
+    },
+    {
+      "name": "À vérifier",
+      "airtable_type": "Checkbox",
+      "make_variable_branch_a": "false",
+      "make_variable_branch_b": "true",
+      "required": false,
+      "note": "Coché automatiquement si confidence = low (branche B du Router Make)"
+    },
+    {
+      "name": "Raw text",
+      "airtable_type": "Long text",
+      "make_variable": "{{3.raw_text}}",
+      "required": false,
+      "note": "Texte brut OCR retourné par Claude. Utile pour debug et correction manuelle."
+    },
+    {
+      "name": "ID Make Run",
+      "airtable_type": "Single line text",
+      "make_variable": "{{1.id}}",
+      "required": false,
+      "note": "Identifiant du run Make pour traçabilité et support"
+    },
+    {
+      "name": "Source",
+      "airtable_type": "Single line text",
+      "make_variable": "Scan carte — Make Mobile",
+      "required": false,
+      "note": "Valeur fixe — permet de filtrer les contacts créés manuellement vs par scan"
+    }
+  ],
+  "airtable_api": {
+    "base_url": "https://api.airtable.com/v0/{BASE_ID}/Contacts%20Salons",
+    "scopes_required": [
+      "data.records:read",
+      "data.records:write",
+      "schema.bases:read"
+    ],
+    "where_to_find_base_id": "URL Airtable → https://airtable.com/appXXXXXXXXXXXXXX/... → copier appXXXXXXXXXXXXXX",
+    "where_to_create_token": "Airtable → avatar → Developer hub → Personal access tokens → + Add token"
+  }
+}
