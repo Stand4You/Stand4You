@@ -462,6 +462,7 @@ async function atLoad(recordId){
       try{
         const saved=JSON.parse(devis.Devis_JSON);
         restoreState(saved);
+        buildCatalogue(_rubRecords,_presRecords); /* catalogue pour le type restauré */
         st.ctx._atRecordId=recordId;
         st._atMode=true;
         if(devis['Créé par']&&devis['Créé par'].name)st.ctx._createdBy=devis['Créé par'].name;
@@ -518,6 +519,21 @@ async function atLoad(recordId){
           }
         }
       }
+    }
+
+    /* Applique le type depuis Airtable si le champ existe (nouveau devis sans JSON) */
+    const rawT=(devis.Type_Devis||devis.Type||devis.Mode_Devis||'').toString()
+      .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const tMap={n:'n',r:'r',s:'s',m:'m',
+      'nouveau stand':'n','nouveau':'n',
+      'remontage':'r',
+      'stockage':'s',
+      'mobilier':'m'};
+    if(tMap[rawT]&&tMap[rawT]!==st.type){
+      st.type=tMap[rawT];
+      buildCatalogue(_rubRecords,_presRecords);
+      st.sections=DEFS_IDX.map((ci,i)=>mkSec(ci,i));
+      nSid=DEFS_IDX.length;
     }
 
     showBanner('success',t('atLoaded'));
@@ -1312,12 +1328,14 @@ function printD(){
 
 /* ═══ INIT ═══ */
 (async()=>{
+  /* Lit le type depuis l'URL (?type=s) avant de construire le catalogue */
+  const params=new URLSearchParams(window.location.search);
+  const recId=params.get('id');
+  const typeParam=params.get('type');
+  if(typeParam&&['n','r','s','m'].includes(typeParam))st.type=typeParam;
   await loadCatalogue();
   st.sections=DEFS_IDX.map((ci,i)=>mkSec(ci,i));
   nSid=DEFS_IDX.length;
-  /* Détecte ?id=recXXX dans l'URL */
-  const params=new URLSearchParams(window.location.search);
-  const recId=params.get('id');
   if(recId&&recId.startsWith('rec')){
     render(); /* Affiche l'UI vide pendant le chargement */
     await atLoad(recId);
