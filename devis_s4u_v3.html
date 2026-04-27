@@ -1,0 +1,295 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0D1B2A;--gold:#C9A96E;--cream:#F5F5F0;--sgray:#6B7280;--azure:#2F80ED}
+#app{font-family:'DM Sans',var(--font-sans);padding:1rem 0;max-width:880px;color:var(--navy)}
+.tabs{display:flex;gap:0;margin-bottom:1.5rem;border-bottom:2px solid var(--navy)}
+.tab{padding:9px 16px 9px;border:none;background:none;font-size:13px;font-family:'DM Sans',var(--font-sans);color:var(--sgray);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;letter-spacing:.02em;transition:color .15s}
+.tab.on{color:var(--navy);border-bottom-color:var(--gold);font-weight:500}
+.tab:hover:not(.on){color:var(--navy)}
+.card{border:0.5px solid rgba(13,27,42,.15);border-radius:var(--border-radius-lg);margin-bottom:8px;background:#fff;overflow:hidden}
+.sh{display:flex;align-items:center;gap:8px;padding:11px 14px;background:var(--navy);border-bottom:none}
+.sh.open{border-bottom:0.5px solid rgba(13,27,42,.12)}
+.snum{font-size:11px;color:var(--gold);flex-shrink:0;font-family:'Cormorant Garamond',var(--font-serif);font-style:italic}
+.ni{background:none;border:none;font-family:'Cormorant Garamond',var(--font-serif);font-weight:500;font-size:16px;color:#fff;outline:none;flex:1;min-width:0;padding:1px 0;letter-spacing:.02em}
+.ni::placeholder{color:rgba(255,255,255,.4)}
+.sb{padding:10px 14px 12px;background:#fff}
+.phase-lbl{font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--gold);text-transform:uppercase;padding:8px 0 4px;margin-top:4px;border-top:0.5px solid rgba(201,169,110,.3)}
+.phase-lbl:first-child{margin-top:0;border-top:none;padding-top:0}
+.pline{padding:6px 0;border-bottom:0.5px solid rgba(13,27,42,.06)}
+.pline:last-of-type{border-bottom:none}
+.pline-row{display:flex;gap:6px;align-items:center}
+.pline-row select{flex:1;min-width:0;font-size:13px;font-family:'DM Sans',var(--font-sans);border:0.5px solid rgba(13,27,42,.15);border-radius:6px;padding:5px 8px;color:var(--navy);background:#fff}
+.desc-wrap{overflow:hidden;transition:max-height .2s ease}
+.desc-wrap.hidden{max-height:0}
+.desc-wrap.shown{max-height:200px}
+.desc-ta{width:100%;resize:none;font-size:11px;font-style:italic;color:var(--sgray);font-family:'DM Sans',var(--font-sans);border:none;border-left:2px solid rgba(201,169,110,.4);background:rgba(245,245,240,.5);outline:none;padding:5px 8px;margin-top:4px;border-radius:0 4px 4px 0;line-height:1.5;min-height:28px}
+.desc-ta:focus{border-left-color:var(--gold);background:rgba(201,169,110,.07)}
+.bi{background:none;border:none;cursor:pointer;padding:3px 5px;color:rgba(255,255,255,.6);font-size:13px;border-radius:4px;line-height:1;font-family:'DM Sans',var(--font-sans);flex-shrink:0;transition:color .15s}
+.bi:hover{color:#fff}
+.bi.dark{color:var(--sgray)}
+.bi.dark:hover{color:var(--navy);background:rgba(13,27,42,.06)}
+.bi.dark.del:hover{background:rgba(200,50,50,.08);color:#c63232}
+.bi.desc-tog{color:var(--sgray);font-size:11px;padding:2px 4px;border:0.5px solid rgba(13,27,42,.12);border-radius:4px}
+.bi.desc-tog:hover{background:rgba(201,169,110,.1);border-color:var(--gold);color:var(--gold)}
+.sar{display:flex;align-items:center;gap:8px;padding-top:10px;margin-top:8px;border-top:0.5px solid rgba(13,27,42,.1);justify-content:flex-end;flex-wrap:wrap}
+.offbadge{background:rgba(201,169,110,.15);color:#8a6a30;font-size:11px;padding:3px 9px;border-radius:var(--border-radius-md);font-weight:500;letter-spacing:.04em;border:0.5px solid rgba(201,169,110,.4)}
+.amt{width:110px;text-align:right;font-size:13px;border:0.5px solid rgba(13,27,42,.15);border-radius:6px;padding:5px 8px;font-family:'DM Sans',var(--font-sans);color:var(--navy)}
+.sh-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sh-amt{font-size:13px;color:rgba(255,255,255,.85);white-space:nowrap;font-family:'DM Sans',var(--font-sans)}
+.sh-offbadge{font-size:10px;color:var(--gold);letter-spacing:.06em;font-family:'DM Sans',var(--font-sans);border:0.5px solid rgba(201,169,110,.5);padding:2px 7px;border-radius:3px}
+.badd{background:none;border:0.5px dashed rgba(13,27,42,.2);border-radius:var(--border-radius-md);padding:6px 10px;font-size:12px;color:var(--sgray);cursor:pointer;width:100%;text-align:center;margin-top:10px;font-family:'DM Sans',var(--font-sans)}
+.badd:hover{background:rgba(201,169,110,.07);border-color:var(--gold);color:var(--navy)}
+.totals{border:0.5px solid rgba(13,27,42,.15);border-radius:var(--border-radius-lg);padding:14px 18px;background:#fff;margin-top:6px}
+.trow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:14px;font-family:'DM Sans',var(--font-sans)}
+.trow span:first-child{color:var(--sgray)}
+.trow.main{border-top:0.5px solid rgba(13,27,42,.12);margin-top:8px;padding-top:10px;font-weight:500;font-size:15px}
+.trow.main span:first-child{color:var(--navy)}
+.trow.ttc{border-top:1.5px solid var(--navy);margin-top:6px;padding-top:8px;font-weight:500;font-size:16px;font-family:'Cormorant Garamond',var(--font-serif)}
+.trow.ttc span:first-child{color:var(--navy)}
+.ri{width:72px;text-align:right;font-size:13px;border:0.5px solid rgba(13,27,42,.15);border-radius:6px;padding:5px 8px;font-family:'DM Sans',var(--font-sans)}
+.rtbtn{background:none;border:0.5px solid rgba(13,27,42,.2);border-radius:5px;padding:4px 9px;font-size:12px;cursor:pointer;color:var(--sgray);font-family:'DM Sans',var(--font-sans)}
+.rtbtn:hover{border-color:var(--gold);color:var(--navy)}
+.tva-row{display:flex;align-items:center;gap:8px}
+.tvachk{accent-color:var(--navy)}
+.soon{padding:2rem 0;color:var(--sgray);font-size:14px}
+.add-sec{background:none;border:0.5px dashed rgba(13,27,42,.25);border-radius:var(--border-radius-lg);padding:9px;font-size:13px;color:var(--sgray);cursor:pointer;width:100%;text-align:center;margin-bottom:1rem;font-family:'DM Sans',var(--font-sans)}
+.add-sec:hover{border-color:var(--gold);color:var(--navy);background:rgba(201,169,110,.05)}
+.divline{display:flex;align-items:center;gap:8px;margin:4px 0 2px}
+</style>
+<div id="app"></div>
+<script>
+const SC=[
+  {name:"Étude & Maîtrise d'œuvre",
+   groups:[
+     {lbl:"Phase 1",cats:["Étude des spécifications","Réalisation d'étude (vue 3D & plans d'aménagement)","Finalisation du projet","Réalisation des plans techniques (tous corps d'état)","Sélection des fournisseurs & coordination de travaux","Suivi de production pour la bonne conformité"]},
+     {lbl:"Phase 2",cats:["Suivi du chantier durant le montage et le démontage par un chargé d'affaires dédié"]}
+   ],
+   defs:[{cat:"Étude des spécifications",g:0},{cat:"Réalisation d'étude (vue 3D & plans d'aménagement)",g:0},{cat:"Finalisation du projet",g:0},{cat:"Réalisation des plans techniques (tous corps d'état)",g:0},{cat:"Sélection des fournisseurs & coordination de travaux",g:0},{cat:"Suivi de production pour la bonne conformité",g:0},{cat:"Suivi du chantier durant le montage et le démontage par un chargé d'affaires dédié",g:1}]
+  },
+  {name:"Revêtement de sol & Tapisserie",
+   groups:[{lbl:null,cats:["Fourniture, pose et dépose d'un revêtement de sol","Autre"]}],
+   defs:[{cat:"Fourniture, pose et dépose d'un revêtement de sol",g:0}]
+  },
+  {name:"Menuiserie",
+   groups:[{lbl:null,cats:["Fabrication et location de cloisons de fond","Fabrication et location de cloisons de réserve","Fabrication et location de mobilier sur-mesure","Montage et démontage","Aménagement d'une réserve","Autre"]}],
+   defs:[{cat:"Fabrication et location de cloisons de fond",g:0},{cat:"Fabrication et location de cloisons de réserve",g:0},{cat:"Fabrication et location de mobilier sur-mesure",g:0},{cat:"Montage et démontage",g:0}]
+  },
+  {name:"Électricité",groups:[{lbl:null,cats:["Tableau électrique","Câblage & prises","Éclairage général","Éclairage vitrine","Démontage","Autre"]}],defs:[]},
+  {name:"Audiovisuel",groups:[{lbl:null,cats:["Écrans & affichage dynamique","Sonorisation","Éclairage scénique","Location matériel AV","Installation & câblage","Autre"]}],defs:[]},
+  {name:"Mobilier & accessoires",groups:[{lbl:null,cats:["Mobilier en location","Mobilier sur-mesure","Accessoires & décoration","Comptoir d'accueil","Autre"]}],defs:[]},
+  {name:"Signalétique",groups:[{lbl:null,cats:["Impression & pose bandeau","Totems","Habillage cloisons","Panneaux directionnels","Autre"]}],defs:[]},
+  {name:"Restauration",groups:[{lbl:null,cats:["Espace café","Traiteur","Bar","Dotation boissons","Autre"]}],defs:[]},
+  {name:"Enseignes",groups:[{lbl:null,cats:["Enseigne lumineuse","Lettrage rétro-éclairé","Bandeau façade","Enseigne totem","Autre"]}],defs:[]}
+];
+const GEN={groups:[{lbl:null,cats:["Fourniture","Pose","Démontage","Autre"]}]};
+
+let nextSid=SC.length,nextLid=100;
+const descOpen={};
+
+const st={
+  type:'n',
+  sections:SC.map((c,i)=>({id:i,ci:i,name:c.name,open:true,lines:c.defs.map(d=>({id:nextLid++,cat:d.cat,desc:'',g:d.g})),ht:'',offert:false})),
+  remise:'',remiseType:'%',tva:true
+};
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function fmt(n){if(n===''||n===null||n===undefined||isNaN(n)||n===0)return'—';return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
+function fmtAlways(n){return Number(n||0).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
+
+function calc(){
+  const ht=st.sections.reduce((s,sec)=>s+(sec.offert?0:(parseFloat(sec.ht)||0)),0);
+  const r=parseFloat(st.remise)||0;
+  const rmt=st.remiseType==='%'?ht*r/100:Math.min(r,ht);
+  const apres=Math.max(0,ht-rmt);
+  return{ht,rmt,apres};
+}
+
+function updTotals(){
+  const{ht,rmt,apres}=calc();
+  const g=id=>document.getElementById(id);
+  if(g('v-ht'))g('v-ht').textContent=fmtAlways(ht);
+  if(g('v-rmt'))g('v-rmt').textContent='− '+fmtAlways(rmt);
+  if(g('v-apres'))g('v-apres').textContent=fmtAlways(apres);
+  if(g('v-tva'))g('v-tva').textContent=fmtAlways(apres*0.2);
+  if(g('v-ttc'))g('v-ttc').textContent=fmtAlways(st.tva?apres*1.2:apres);
+}
+
+function catSel(ci,sid,lid,sel){
+  const c=(ci>=0&&ci<SC.length)?SC[ci]:GEN;
+  let o=`<option value="">— Catégorie —</option>`;
+  for(const g of c.groups){
+    const opts=g.cats.map(cat=>`<option value="${esc(cat)}"${sel===cat?' selected':''}>${esc(cat)}</option>`).join('');
+    o+=g.lbl?`<optgroup label="${esc(g.lbl)}">${opts}</optgroup>`:opts;
+  }
+  return`<select onchange="updCat(${sid},${lid},this.value)">${o}</select>`;
+}
+
+function lineHTML(ci,sid,l){
+  const open=descOpen[l.id];
+  return`<div class="pline">
+    <div class="pline-row">
+      ${catSel(ci,sid,l.id,l.cat)}
+      <button class="bi desc-tog" onclick="togDesc(${l.id})" title="Description">${open?'▴':'✎'}</button>
+      <button class="bi dark del" onclick="delLine(${sid},${l.id})">✕</button>
+    </div>
+    <div class="desc-wrap ${open?'shown':'hidden'}">
+      <textarea class="desc-ta" rows="2" placeholder="Description détaillée…" onblur="updDesc(${sid},${l.id},this.value)">${esc(l.desc)}</textarea>
+    </div>
+  </div>`;
+}
+
+function sectionLinesHTML(s){
+  if(!s.lines.length)return'';
+  if(s.ci===0){
+    let html='';let lastG=-1;
+    for(const l of s.lines){
+      const g=l.g||0;
+      if(g!==lastG){
+        const lbl=SC[0].groups[g]&&SC[0].groups[g].lbl;
+        if(lbl)html+=`<div class="phase-lbl">${lbl}</div>`;
+        lastG=g;
+      }
+      html+=lineHTML(s.ci,s.id,l);
+    }
+    return html;
+  }
+  return s.lines.map(l=>lineHTML(s.ci,s.id,l)).join('');
+}
+
+function shRight(s){
+  const v=parseFloat(s.ht)||0;
+  if(s.open)return`<button class="bi" onclick="toggleOpen(${s.id})">▾</button>`;
+  let inner='';
+  if(s.offert){inner=`<span class="sh-offbadge">OFFERT</span>${v>0?`<span class="sh-amt" style="opacity:.5;text-decoration:line-through">${fmtAlways(v)}</span>`:''}`;
+  }else{inner=v>0?`<span class="sh-amt">${fmtAlways(v)}</span>`:`<span class="sh-amt" style="opacity:.35">—</span>`;}
+  return`<div class="sh-right">${inner}</div><button class="bi" onclick="toggleOpen(${s.id})">▸</button>`;
+}
+
+function sectionHTML(s,idx){
+  const body=s.open?`<div class="sb">
+    ${sectionLinesHTML(s)}
+    <button class="badd" onclick="addLine(${s.id})">+ Ajouter une prestation</button>
+    <div class="sar">
+      <span style="font-size:13px;color:var(--sgray)">Montant HT :</span>
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:var(--sgray);white-space:nowrap">
+        <input type="checkbox" ${s.offert?'checked':''} onchange="toggleOffert(${s.id})"> Offert
+      </label>
+      ${s.offert?`<span class="offbadge">OFFERT</span>`:''}
+      <input type="number" class="amt" value="${esc(s.ht)}" placeholder="0,00" min="0" step="0.01"
+             style="${s.offert?'opacity:0.4;':''}" oninput="updHT(${s.id},this.value)">
+      <span style="font-size:13px;color:var(--sgray)">€ HT</span>
+    </div>
+  </div>`:'';
+
+  return`<div class="card">
+    <div class="sh ${s.open?'open':''}">
+      <button class="bi" onclick="toggleOpen(${s.id})">${s.open?'▾':'▸'}</button>
+      <span class="snum">${idx+1}</span>
+      <input class="ni" type="text" value="${esc(s.name)}" onblur="updName(${s.id},this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+      ${!s.open?shRight(s):`<button class="bi del" onclick="delSection(${s.id})" title="Supprimer">✕</button>`}
+      ${s.open?`<button class="bi del" onclick="delSection(${s.id})" title="Supprimer" style="display:none">✕</button>`:''}
+    </div>
+    ${body}
+  </div>`.replace('style="display:none">✕</button>','style="display:none">✕</button>');
+}
+
+function sectionHTMLClean(s,idx){
+  const body=s.open?`<div class="sb">
+    ${sectionLinesHTML(s)}
+    <button class="badd" onclick="addLine(${s.id})">+ Ajouter une prestation</button>
+    <div class="sar">
+      <span style="font-size:13px;color:var(--sgray)">Montant HT :</span>
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:var(--sgray);white-space:nowrap">
+        <input type="checkbox" ${s.offert?'checked':''} onchange="toggleOffert(${s.id})"> Offert
+      </label>
+      ${s.offert?`<span class="offbadge">OFFERT</span>`:''}
+      <input type="number" class="amt" value="${esc(s.ht)}" placeholder="0,00" min="0" step="0.01"
+             style="${s.offert?'opacity:0.35;':''}" oninput="updHT(${s.id},this.value)">
+      <span style="font-size:13px;color:var(--sgray)">€ HT</span>
+    </div>
+  </div>`:'';
+  const closed=!s.open;
+  const v=parseFloat(s.ht)||0;
+  let rightEl='';
+  if(closed){
+    if(s.offert)rightEl=`<span class="sh-offbadge">OFFERT</span>${v>0?`<span class="sh-amt" style="opacity:.5;text-decoration:line-through;margin-right:4px">${fmtAlways(v)}</span>`:''}`;
+    else rightEl=v>0?`<span class="sh-amt">${fmtAlways(v)}</span>`:`<span class="sh-amt" style="opacity:.35">—</span>`;
+  }
+  return`<div class="card">
+    <div class="sh ${s.open?'open':''}">
+      <button class="bi" onclick="toggleOpen(${s.id})">${s.open?'▾':'▸'}</button>
+      <span class="snum">${idx+1}</span>
+      <input class="ni" type="text" value="${esc(s.name)}" onblur="updName(${s.id},this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+      <div style="flex:1"></div>
+      ${rightEl?`<div style="display:flex;align-items:center;gap:6px">${rightEl}</div>`:''}
+      <button class="bi del" onclick="delSection(${s.id})" title="Supprimer">✕</button>
+    </div>
+    ${body}
+  </div>`;
+}
+
+function totalsHTML(){
+  const{ht,rmt,apres}=calc();
+  const hasRemise=parseFloat(st.remise)>0;
+  return`<div class="totals">
+    <div class="trow"><span>Total HT avant remise</span><span id="v-ht" style="font-weight:500">${fmtAlways(ht)}</span></div>
+    <div class="trow">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span>Remise</span>
+        <input type="number" class="ri" value="${esc(st.remise)}" placeholder="0" min="0" oninput="updRemise(this.value)">
+        <button class="rtbtn" onclick="toggleRT()">${st.remiseType}</button>
+      </div>
+      <span id="v-rmt">− ${fmtAlways(rmt)}</span>
+    </div>
+    <div class="trow main"><span>Total HT après remise</span><span id="v-apres">${fmtAlways(apres)}</span></div>
+    <div class="trow" style="font-size:13px">
+      <div class="tva-row">
+        <input type="checkbox" class="tvachk" ${st.tva?'checked':''} onchange="toggleTVA()">
+        <span>TVA 20 %</span>
+      </div>
+      <span id="v-tva" style="${st.tva?'':'opacity:.35;text-decoration:line-through'}">${fmtAlways(apres*0.2)}</span>
+    </div>
+    <div class="trow ttc"><span>Total TTC</span><span id="v-ttc">${fmtAlways(st.tva?apres*1.2:apres)}</span></div>
+  </div>`;
+}
+
+function render(){
+  const types=[{id:'n',lbl:'Nouveau stand'},{id:'r',lbl:'Remontage'},{id:'s',lbl:'Stockage'},{id:'m',lbl:'Mobilier'}];
+  const tabs=`<div class="tabs">${types.map(t=>`<button class="tab${st.type===t.id?' on':''}" onclick="setType('${t.id}')">${t.lbl}</button>`).join('')}</div>`;
+  const body=st.type==='n'
+    ?st.sections.map((s,i)=>sectionHTMLClean(s,i)).join('')
+      +`<button class="add-sec" onclick="addSection()">+ Ajouter une rubrique</button>`
+      +totalsHTML()
+    :`<p class="soon">Ce type de devis sera configuré prochainement.</p>`;
+  document.getElementById('app').innerHTML=tabs+body;
+}
+
+function togDesc(lid){descOpen[lid]=!descOpen[lid];render();}
+function setType(t){st.type=t;render();}
+function toggleOpen(id){const s=st.sections.find(s=>s.id===id);s.open=!s.open;render();}
+function toggleOffert(id){const s=st.sections.find(s=>s.id===id);s.offert=!s.offert;render();}
+function toggleTVA(){st.tva=!st.tva;render();}
+function delSection(id){st.sections=st.sections.filter(s=>s.id!==id);render();}
+function addSection(){st.sections.push({id:nextSid++,ci:-1,name:'Nouvelle rubrique',open:true,lines:[],ht:'',offert:false});render();}
+function addLine(sid){const s=st.sections.find(s=>s.id===sid);s.lines.push({id:nextLid++,cat:'',desc:'',g:0});render();}
+function delLine(sid,lid){const s=st.sections.find(s=>s.id===sid);s.lines=s.lines.filter(l=>l.id!==lid);render();}
+function updName(id,v){const s=st.sections.find(s=>s.id===id);if(s)s.name=v;}
+function updHT(id,v){const s=st.sections.find(s=>s.id===id);if(s){s.ht=v;updTotals();}}
+function updDesc(sid,lid,v){const s=st.sections.find(s=>s.id===sid);const l=s&&s.lines.find(l=>l.id===lid);if(l)l.desc=v;}
+function updCat(sid,lid,v){
+  const s=st.sections.find(s=>s.id===sid);const l=s&&s.lines.find(l=>l.id===lid);
+  if(l){
+    l.cat=v;
+    if(s.ci>=0&&s.ci<SC.length){
+      const cfg=SC[s.ci];
+      for(let gi=0;gi<cfg.groups.length;gi++){if(cfg.groups[gi].cats.includes(v)){l.g=gi;break;}}
+    }
+  }
+}
+function updRemise(v){st.remise=v;updTotals();}
+function toggleRT(){st.remiseType=st.remiseType==='%'?'€':'%';updTotals();render();}
+
+render();
+</script>
