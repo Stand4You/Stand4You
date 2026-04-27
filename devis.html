@@ -191,7 +191,9 @@ const BASE_ID    = 'appIvAiRsGZRbtwY7';          // ex: appABCD1234
 const TBL_DEVIS  = 'tblaOkJlBzzfDIzl2';       // ex: tblABCD1234
 const TBL_CLIENT = 'tblZwYcnFAM6Pk91a';      // ex: tblABCD1234
 const TBL_SALON  = 'tblx2Oy75AR9vX6lR';       // ex: tblABCD1234
-const TBL_EVNT   = 'tblKA36jWxmadAKgM';   // ex: tblABCD1234
+const TBL_EVNT        = 'tblKA36jWxmadAKgM';
+const TBL_RUBRIQUES   = 'tblkk6r4KHjA7Qxsp';
+const TBL_PRESTATIONS = 'tblmWNl2DQhpZhctW';
 
 /* ── Webhook Make (optionnel — branché en étape 4) ── */
 const MAKE_WEBHOOK = 'COLLER_URL_WEBHOOK_MAKE_ICI_OU_LAISSER_VIDE';
@@ -270,8 +272,8 @@ en:{
 }};
 function t(k){return(TR[st.lang]&&TR[st.lang][k]!=null?TR[st.lang][k]:(TR.fr[k]||k));}
 
-const CAT_TR={"Étude des spécifications":"Specifications review","Réalisation d'étude (modélisation 3D)":"Design study (3D modelling)","Réalisation des plans techniques (tous corps d'état)":"Technical drawings (all trades)","Sélection des fournisseurs & coordination de travaux":"Supplier selection & works coordination","Suivi de production pour la bonne conformité":"Production monitoring & compliance","Remplissage des dossiers administratifs":"Administrative file completion","Suivi du chantier durant le montage et le démontage":"Site supervision – assembly & dismantling","Fourniture, pose et dépose d'un revêtement de sol":"Supply, installation and removal of floor covering","Fabrication & location de cloisons":"Manufacturing & rental of partition walls","Fabrication & location de chassis en menuiserie":"Manufacturing & rental of timber frames","Fabrication & location de meuble sur mesure":"Custom furniture manufacturing & rental","Aménagement sur mesure d'une réserve":"Custom storage room fit-out","Fourniture, pose & dépose d'étagères":"Supply, installation & removal of shelving","Location d'un bar":"Bar rental","Fourniture de spots":"Spotlight supply","Fourniture de suspensions":"Pendant light supply","Fourniture de lampes de table":"Table lamp supply","Fourniture de lampes sur pied":"Floor lamp supply","Fourniture d'alimentation électrique":"Electrical power supply","Fourniture de multiprise":"Power strip supply","Location d'un compteur électrique":"Electricity meter rental","Éclairage enseigne / signalétique":"Sign / wayfinding lighting","Installation, raccordement & déconnexion par électricien qualifié":"Installation, connection & disconnection by qualified electrician","Dépose et remise en état":"Removal and reinstatement","Location, pose et dépose d'écrans":"Screen rental, installation and removal","Location, pose et dépose d'un mur d'image":"Video wall rental, installation and removal","Players et diffusion de contenu":"Media players and content broadcasting","Sonorisation du stand":"Stand sound system","Micros (HF / conférence)":"Microphones (wireless / conference)","Éclairage scénographique AV":"AV scenic lighting","Location matériel audiovisuel":"Audiovisual equipment rental","Installation, câblage & démontage":"Installation, cabling & dismantling","Paramétrage & Assistance technique":"Configuration & technical support","Comptoir d'accueil":"Reception counter","Tables hautes / basses":"High / low tables","Assises (chaises / tabourets)":"Seating (chairs / stools)","Mobilier sur-mesure":"Custom furniture","Location mobilier standard":"Standard furniture rental","Décoration / accessoires":"Decoration / accessories","Plantes et éléments décoratifs":"Plants and decorative elements","Fabrication Logo / enseigne":"Logo / sign manufacturing","Fabrication Lettres découpées":"Cut letter manufacturing","Fabrication Enseigne lumineuse":"Illuminated sign manufacturing","Fabrication Enseigne suspendue":"Suspended sign manufacturing","Fabrication Structure sur mesure":"Custom structure manufacturing","Installation & alimentation":"Installation & power connection","Impression, livraison et pose de panneaux imprimés":"Printing, delivery and installation of printed panels","Impression, livraison et pose d'affiches":"Printing, delivery and installation of posters","Impression, livraison et pose de panneaux suspendus":"Printing, delivery and installation of suspended panels","Totems directionnels":"Directional totems","Signalétique sol":"Floor wayfinding","Habillage cloisons":"Wall covering","Bandeaux de stand":"Stand fascias","Emballage léger – Chargement":"Light packaging – Loading","Livraison sur le lieu d'exposition":"Delivery to exhibition venue","Déchargement":"Unloading","Emballage après l'exposition":"Post-show packaging","Chargement transport pour retour en ateliers":"Loading for return to workshops","Frais de déplacement":"Travel expenses","Espace café / machine":"Coffee area / machine","Traiteur petit-déjeuner":"Breakfast catering","Traiteur cocktail":"Cocktail catering","Boissons / consommables":"Beverages / consumables","Gestion logistique F&B":"F&B logistics management","Retrait du film polyéthylène avant l'ouverture du salon":"Removal of polyethylene film before show opening","Nettoyage de votre stand avant l'ouverture du salon":"Stand cleaning before show opening","Permanence technique pendant le salon":"Technical attendance during the show","Astreinte / urgence":"On-call / emergency","Renfort technique":"Technical reinforcement","Frais de stockage":"Storage fees","Manutention entrée/sortie de stock":"Stock in/out handling","Contrôle & remise en état":"Inspection & refurbishment","Autre":"Other"};
-const SEC_TR={"Étude & Maîtrise d'œuvre":"Design & Project Management","Revêtement de sol & Habillage mural":"Flooring & Wall Covering","Menuiserie & Agencement":"Joinery & Fitting","Électricité & Éclairage":"Electrical & Lighting","Audiovisuel & Digital":"Audiovisual & Digital","Mobilier & Accessoires":"Furniture & Accessories","Enseigne & Visibilité":"Signage & Visibility","Signalétique & Visuels":"Wayfinding & Visuals","Transport & Logistique":"Transport & Logistics","Restauration & Hospitalité":"Catering & Hospitality","Nettoyage & Préparation":"Cleaning & Preparation","Permanence & Assistance technique":"On-site Technical Assistance","Stockage & Conservation":"Storage & Preservation","Autre":"Other"};
+let CAT_TR={};  // rempli dynamiquement depuis Airtable (TBL_PRESTATIONS)
+let SEC_TR={};  // rempli dynamiquement depuis Airtable (TBL_RUBRIQUES)
 function dc(c){return st.lang==='en'&&CAT_TR[c]?CAT_TR[c]:c;}
 function ds(n){return st.lang==='en'&&SEC_TR[n]?SEC_TR[n]:n;}
 
@@ -289,26 +291,10 @@ propriete:"Plans, studies and creative works remain the intellectual property of
 }};
 
 /* ═══ CATALOGUE ═══ */
-const SC=[
-/* 0 */{name:"Étude & Maîtrise d'œuvre",hasPhases:true,
- groups:[{lbl:"Phase 1",cats:["Étude des spécifications","Réalisation d'étude (modélisation 3D)","Réalisation des plans techniques (tous corps d'état)","Sélection des fournisseurs & coordination de travaux","Suivi de production pour la bonne conformité","Remplissage des dossiers administratifs","Autre"]},{lbl:"Phase 2",cats:["Suivi du chantier durant le montage et le démontage","Autre"]}],
- defs:[{cat:"Étude des spécifications",g:0},{cat:"Réalisation d'étude (modélisation 3D)",g:0},{cat:"Réalisation des plans techniques (tous corps d'état)",g:0},{cat:"Sélection des fournisseurs & coordination de travaux",g:0},{cat:"Suivi de production pour la bonne conformité",g:0},{cat:"Suivi du chantier durant le montage et le démontage",g:1}]},
-/* 1 */{name:"Revêtement de sol & Habillage mural",groups:[{lbl:null,cats:["Fourniture, pose et dépose d'un revêtement de sol","Autre"]}],defs:[{cat:"Fourniture, pose et dépose d'un revêtement de sol",g:0}]},
-/* 2 */{name:"Menuiserie & Agencement",groups:[{lbl:null,cats:["Fabrication & location de cloisons","Fabrication & location de chassis en menuiserie","Fabrication & location de meuble sur mesure","Aménagement sur mesure d'une réserve","Fourniture, pose & dépose d'étagères","Location d'un bar","Autre"]}],defs:[{cat:"Fabrication & location de cloisons",g:0}]},
-/* 3 */{name:"Électricité & Éclairage",groups:[{lbl:null,cats:["Fourniture de spots","Fourniture de suspensions","Fourniture de lampes de table","Fourniture de lampes sur pied","Fourniture d'alimentation électrique","Fourniture de multiprise","Location d'un compteur électrique","Éclairage enseigne / signalétique","Installation, raccordement & déconnexion par électricien qualifié","Dépose et remise en état","Autre"]}],defs:[{cat:"Fourniture de spots",g:0},{cat:"Fourniture d'alimentation électrique",g:0},{cat:"Installation, raccordement & déconnexion par électricien qualifié",g:0}]},
-/* 4 */{name:"Audiovisuel & Digital",groups:[{lbl:null,cats:["Location, pose et dépose d'écrans","Location, pose et dépose d'un mur d'image","Players et diffusion de contenu","Sonorisation du stand","Micros (HF / conférence)","Éclairage scénographique AV","Location matériel audiovisuel","Installation, câblage & démontage","Paramétrage & Assistance technique","Autre"]}],defs:[{cat:"Location, pose et dépose d'écrans",g:0},{cat:"Installation, câblage & démontage",g:0}]},
-/* 5 */{name:"Mobilier & Accessoires",groups:[{lbl:null,cats:["Comptoir d'accueil","Tables hautes / basses","Assises (chaises / tabourets)","Mobilier sur-mesure","Location mobilier standard","Décoration / accessoires","Plantes et éléments décoratifs","Autre"]}],defs:[{cat:"Tables hautes / basses",g:0},{cat:"Assises (chaises / tabourets)",g:0}]},
-/* 6 */{name:"Enseigne & Visibilité",groups:[{lbl:null,cats:["Fabrication Logo / enseigne","Fabrication Lettres découpées","Fabrication Enseigne lumineuse","Fabrication Enseigne suspendue","Fabrication Structure sur mesure","Installation & alimentation","Autre"]}],defs:[{cat:"Fabrication Logo / enseigne",g:0},{cat:"Installation & alimentation",g:0}]},
-/* 7 */{name:"Signalétique & Visuels",groups:[{lbl:null,cats:["Impression, livraison et pose de panneaux imprimés","Impression, livraison et pose d'affiches","Impression, livraison et pose de panneaux suspendus","Totems directionnels","Signalétique sol","Habillage cloisons","Bandeaux de stand","Autre"]}],defs:[{cat:"Impression, livraison et pose de panneaux imprimés",g:0}]},
-/* 8 */{name:"Transport & Logistique",groups:[{lbl:null,cats:["Emballage léger – Chargement","Livraison sur le lieu d'exposition","Déchargement","Emballage après l'exposition","Chargement transport pour retour en ateliers","Frais de déplacement","Autre"]}],defs:[{cat:"Emballage léger – Chargement",g:0},{cat:"Livraison sur le lieu d'exposition",g:0},{cat:"Déchargement",g:0},{cat:"Emballage après l'exposition",g:0},{cat:"Chargement transport pour retour en ateliers",g:0}]},
-/* 9 */{name:"Restauration & Hospitalité",groups:[{lbl:null,cats:["Espace café / machine","Traiteur petit-déjeuner","Traiteur cocktail","Boissons / consommables","Gestion logistique F&B","Autre"]}],defs:[{cat:"Boissons / consommables",g:0},{cat:"Gestion logistique F&B",g:0}]},
-/* 10 */{name:"Nettoyage & Préparation",groups:[{lbl:null,cats:["Retrait du film polyéthylène avant l'ouverture du salon","Nettoyage de votre stand avant l'ouverture du salon","Autre"]}],defs:[{cat:"Retrait du film polyéthylène avant l'ouverture du salon",g:0},{cat:"Nettoyage de votre stand avant l'ouverture du salon",g:0}]},
-/* 11 */{name:"Permanence & Assistance technique",groups:[{lbl:null,cats:["Permanence technique pendant le salon","Astreinte / urgence","Renfort technique","Autre"]}],defs:[{cat:"Permanence technique pendant le salon",g:0}]},
-/* 12 */{name:"Stockage & Conservation",perLine:true,groups:[{lbl:null,cats:["Frais de stockage","Manutention entrée/sortie de stock","Contrôle & remise en état","Autre"]}],defs:[{cat:"Frais de stockage",g:0,isStorage:true},{cat:"Manutention entrée/sortie de stock",g:0},{cat:"Contrôle & remise en état",g:0}]},
-/* 13 */{name:"Autre",groups:[{lbl:null,cats:["Autre"]}],defs:[]}
-];
-const DEFS_IDX=[0,1,2,3,4,5,6,7,8];
-let nSid=DEFS_IDX.length,nLid=300;
+let SC=[];
+let DEFS_IDX=[];
+let nSid=0,nLid=300;
+let _rubRecords=[],_presRecords=[];
 const dopen={},lEdit={};
 
 /* ═══ STATE ═══ */
@@ -341,7 +327,7 @@ function genDevisNum(){
 
 const st={
   type:'n',
-  sections:DEFS_IDX.map((ci,i)=>{const s=mkSec(ci,i);return s;}),
+  sections:[],
   remise:'0',rt:'%',tvaMode:'fr',acp:'50',lang:'fr',
   legal:JSON.parse(JSON.stringify(LEGAL_DEF)),
   ctx:{num:'',dateEmission:todayStr(),validite:'7',
@@ -379,6 +365,89 @@ async function atFind(table,formula){
   if(!r.ok)throw new Error(`Airtable ${r.status}`);
   const d=await r.json();
   return d.records&&d.records[0]?d.records[0]:null;
+}
+async function atFetchAll(table,params){
+  let records=[],offset=null;
+  do{
+    let url=`${AT_BASE}/${table}?${params||''}`;
+    if(offset)url+=`&offset=${encodeURIComponent(offset)}`;
+    const r=await fetch(url,{headers:AT_HDR});
+    if(!r.ok)throw new Error(`Airtable ${r.status}`);
+    const d=await r.json();
+    records=records.concat(d.records||[]);
+    offset=d.offset||null;
+  }while(offset);
+  return records;
+}
+async function loadCatalogue(){
+  try{
+    const sp='sort%5B0%5D%5Bfield%5D=Ordre&sort%5B0%5D%5Bdirection%5D=asc';
+    const[rubRecs,presRecs]=await Promise.all([
+      atFetchAll(TBL_RUBRIQUES,sp),
+      atFetchAll(TBL_PRESTATIONS,sp)
+    ]);
+    _rubRecords=rubRecs;
+    _presRecords=presRecs;
+    buildCatalogue(rubRecs,presRecs);
+  }catch(e){
+    console.warn('loadCatalogue failed',e);
+  }
+}
+function buildCatalogue(rubRecs,presRecs){
+  const mKey={n:'Mode_Nouveau',r:'Mode_Remontage',s:'Mode_Stockage',m:'Mode_Mobilier'};
+  CAT_TR={};SEC_TR={};
+  rubRecs.forEach(rec=>{const f=rec.fields;if(f.Nom_FR&&f.Nom_EN)SEC_TR[f.Nom_FR]=f.Nom_EN;});
+  presRecs.forEach(rec=>{const f=rec.fields;if(f.Nom_FR&&f.Nom_EN)CAT_TR[f.Nom_FR]=f.Nom_EN;});
+  SC=[];
+  rubRecs.forEach(rubRec=>{
+    const rf=rubRec.fields,rubId=rubRec.id;
+    const typeRendu=rf.Type_Rendu||'Standard';
+    const _modes={
+      n:rf.Mode_Nouveau||'Optionnel',
+      r:rf.Mode_Remontage||'Optionnel',
+      s:rf.Mode_Stockage||'Masqué',
+      m:rf.Mode_Mobilier||'Masqué'
+    };
+    const myPres=presRecs.filter(p=>{
+      const lnk=p.fields.RUBRIQUES_Prestation;
+      return lnk&&(Array.isArray(lnk)?lnk.includes(rubId):lnk===rubId);
+    }).sort((a,b)=>(a.fields.Ordre||0)-(b.fields.Ordre||0));
+    let groups=[],defs=[];
+    if(typeRendu==='Phases'){
+      const grpMap=new Map();
+      myPres.forEach(p=>{
+        const pf=p.fields,gn=pf.Groupe||0;
+        if(!grpMap.has(gn))grpMap.set(gn,{lbl:pf.Groupe_Label_FR||`Phase ${gn}`,cats:[]});
+        grpMap.get(gn).cats.push(pf.Nom_FR);
+      });
+      const sortedKeys=[...grpMap.keys()].sort((a,b)=>a-b);
+      groups=sortedKeys.map(k=>grpMap.get(k));
+      myPres.forEach(p=>{
+        const pf=p.fields;
+        if((pf[mKey[st.type]]||'Optionnel')==='Défaut'){
+          const gi=sortedKeys.indexOf(pf.Groupe||0);
+          defs.push({cat:pf.Nom_FR,g:gi>=0?gi:0});
+        }
+      });
+    }else{
+      groups=[{lbl:null,cats:myPres.map(p=>p.fields.Nom_FR)}];
+      myPres.forEach(p=>{
+        const pf=p.fields;
+        if((pf[mKey[st.type]]||'Optionnel')==='Défaut'){
+          const isSto=pf.Special==='Stockage'||pf.Nom_FR==='Frais de stockage';
+          defs.push({cat:pf.Nom_FR,g:0,...(isSto?{isStorage:true}:{})});
+        }
+      });
+    }
+    const sc={name:rf.Nom_FR,_rubRecId:rubId,_modes,groups,defs};
+    if(typeRendu==='Phases')sc.hasPhases=true;
+    if(typeRendu==='Lignes')sc.perLine=true;
+    SC.push(sc);
+  });
+  DEFS_IDX=SC.reduce((acc,sec,idx)=>{
+    if(sec._modes[st.type]==='Défaut')acc.push(idx);
+    return acc;
+  },[]);
 }
 
 /* Chargement depuis Airtable via ?id=recXXX */
@@ -749,8 +818,9 @@ function lHTML(ci,sid,l,perLine){
     </div>
   </div>`;
 }
-function phAmt(sid,gi,ph){
-  const lbl=ds(SC[0].groups[gi].lbl);
+function phAmt(sid,ci,gi,ph){
+  const scCfg=ci>=0&&ci<SC.length?SC[ci]:null;
+  const lbl=scCfg&&scCfg.groups[gi]?ds(scCfg.groups[gi].lbl):ds(`Phase ${gi+1}`);
   return`<div class="sar-ph">
     <span style="font-size:12px;color:var(--sgray);font-weight:500">${t('mHT')} ${lbl}\u00a0:</span>
     <label class="off-chk"><input type="checkbox" ${ph.off?'checked':''} onchange="togPhOff(${sid},${gi})"> ${t('offert')}</label>
@@ -760,13 +830,16 @@ function phAmt(sid,gi,ph){
   </div>`;
 }
 function phLines(s){
+  const ci=s.ci>=0&&s.ci<SC.length?s.ci:0;
+  const scCfg=SC[ci];
+  const numGroups=scCfg?scCfg.groups.length:2;
   let h='';
-  for(let gi=0;gi<2;gi++){
-    const lbl=ds(SC[0].groups[gi].lbl);
+  for(let gi=0;gi<numGroups;gi++){
+    const lbl=scCfg&&scCfg.groups[gi]?ds(scCfg.groups[gi].lbl):ds(`Phase ${gi+1}`);
     h+=`<div class="phase-lbl${gi===0?' first':''}">${lbl}</div>`;
-    h+=s.lines.filter(l=>(l.g||0)===gi).map(l=>lHTML(0,s.id,l,false)).join('');
+    h+=s.lines.filter(l=>(l.g||0)===gi).map(l=>lHTML(ci,s.id,l,false)).join('');
     h+=`<button class="badd" onclick="aLineTo(${s.id},${gi})">+ ${st.lang==='en'?`Add – ${lbl}`:`Ajouter en ${lbl}`}</button>`;
-    h+=phAmt(s.id,gi,s.phases[gi]);
+    h+=phAmt(s.id,ci,gi,s.phases[gi]);
   }
   return h;
 }
@@ -810,7 +883,9 @@ function secHTML(s,idx){
 }
 function addSelHTML(){
   const used=new Set(st.sections.map(s=>s.ci).filter(c=>c>=0));
-  const opts=SC.map((c,i)=>({ci:i,n:c.name})).filter(({ci})=>!used.has(ci)).map(({ci,n})=>`<option value="${ci}">${esc(ds(n))}</option>`).join('');
+  const opts=SC.map((c,i)=>({ci:i,n:c.name,m:c._modes?c._modes[st.type]:'Optionnel'}))
+    .filter(({ci,m})=>!used.has(ci)&&m!=='Masqué')
+    .map(({ci,n})=>`<option value="${ci}">${esc(ds(n))}</option>`).join('');
   return`<select class="add-sel" onchange="aSec(this.value);this.value=''"><option value="">${t('addRub')}</option>${opts}<option value="-1">${t('customRub')}</option></select>`;
 }
 function totHTML(){
@@ -946,7 +1021,7 @@ function render(){
 
 /* ═══ HANDLERS ═══ */
 function togD(lid){dopen[lid]=!dopen[lid];render();}
-function sType(ty){st.type=ty;render();}
+function sType(ty){st.type=ty;buildCatalogue(_rubRecords,_presRecords);render();}
 function togO(id){const s=st.sections.find(s=>s.id===id);s.open=!s.open;render();}
 function togOff(id){const s=st.sections.find(s=>s.id===id);s.off=!s.off;render();scheduleSave();}
 function togPhOff(sid,gi){const s=st.sections.find(s=>s.id===sid);s.phases[gi].off=!s.phases[gi].off;render();scheduleSave();}
@@ -980,7 +1055,7 @@ function uCat(sid,lid,v){
   if(v==='Autre'){l.custom=true;l.cat='';l.ctxt='';l.confirmed=false;render();setTimeout(()=>{const inp=document.getElementById('cinp-'+lid);if(inp)inp.focus();},30);return;}
   l.custom=false;l.cat=v;l.confirmed=false;
   if(s.perLine){const wasSto=l.storageType;l.storageType=(v==='Frais de stockage');if(l.storageType&&!wasSto){l.desc='payable à terme à échoir';dopen[l.id]=true;}}
-  if(s.ci===0)for(let gi=0;gi<SC[0].groups.length;gi++){if(SC[0].groups[gi].cats.includes(v)){l.g=gi;break;}}
+  if(s.ci>=0&&SC[s.ci]&&SC[s.ci].hasPhases)for(let gi=0;gi<SC[s.ci].groups.length;gi++){if(SC[s.ci].groups[gi].cats.includes(v)){l.g=gi;break;}}
   render();
 }
 function uRem(v){st.remise=v;updT();}
@@ -1038,9 +1113,10 @@ function buildPDF(){
     const nm=ds(s.name);
     if(s.phases){
       let h=`<tr class="sr"><td class="cn">${idx+1}</td><td colspan="2" class="cm">${esc(nm)}</td></tr>`;
-      for(let gi=0;gi<2;gi++){
-        const g=SC[0].groups[gi];const ph=s.phases[gi];const v=parseFloat(ph.ht)||0;
-        const lbl=ds(g.lbl);const gl=s.lines.filter(l=>(l.g||0)===gi&&effName(l));
+      const scCfgPdf=s.ci>=0&&s.ci<SC.length?SC[s.ci]:null;
+      for(let gi=0;gi<s.phases.length;gi++){
+        const g=scCfgPdf&&scCfgPdf.groups[gi]?scCfgPdf.groups[gi]:null;const ph=s.phases[gi];const v=parseFloat(ph.ht)||0;
+        const lbl=g?ds(g.lbl):ds(`Phase ${gi+1}`);const gl=s.lines.filter(l=>(l.g||0)===gi&&effName(l));
         h+=`<tr class="pr"><td></td><td class="cph" colspan="2">${lbl}</td></tr>`;
         h+=gl.map(l=>`<tr class="ir"><td></td><td class="ci" colspan="2">• ${esc(effName(l))}${l.desc?`<span class="id">${esc(l.desc)}</span>`:''}</td></tr>`).join('');
         const ac=ph.off?`<td class="ca">${v>0?`<span style="text-decoration:line-through;opacity:.4">${fmt(v)}</span>`:''}&nbsp;<span class="bo">${t('offBadge')}</span></td>`:`<td class="ca">${v>0?fmt(v):'—'}</td>`;
@@ -1235,6 +1311,9 @@ function printD(){
 
 /* ═══ INIT ═══ */
 (async()=>{
+  await loadCatalogue();
+  st.sections=DEFS_IDX.map((ci,i)=>mkSec(ci,i));
+  nSid=DEFS_IDX.length;
   /* Détecte ?id=recXXX dans l'URL */
   const params=new URLSearchParams(window.location.search);
   const recId=params.get('id');
@@ -1242,7 +1321,6 @@ function printD(){
     render(); /* Affiche l'UI vide pendant le chargement */
     await atLoad(recId);
   } else {
-    /* Aucun ?id= : affiche un devis vide */
     render();
   }
 })();
