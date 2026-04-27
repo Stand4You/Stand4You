@@ -366,13 +366,13 @@ async function atFind(table,formula){
   const d=await r.json();
   return d.records&&d.records[0]?d.records[0]:null;
 }
-async function atFetchAll(table,params){
+async function atFetchAll(table){
   let records=[],offset=null;
   do{
-    let url=`${AT_BASE}/${table}?${params||''}`;
-    if(offset)url+=`&offset=${encodeURIComponent(offset)}`;
+    let url=`${AT_BASE}/${table}`;
+    if(offset)url+=`?offset=${encodeURIComponent(offset)}`;
     const r=await fetch(url,{headers:AT_HDR});
-    if(!r.ok)throw new Error(`Airtable ${r.status}`);
+    if(!r.ok){let msg=`Airtable ${r.status}`;try{const e=await r.json();msg+=` – ${e.error?.message||JSON.stringify(e)}`;}catch{}throw new Error(msg);}
     const d=await r.json();
     records=records.concat(d.records||[]);
     offset=d.offset||null;
@@ -381,11 +381,12 @@ async function atFetchAll(table,params){
 }
 async function loadCatalogue(){
   try{
-    const sp='sort%5B0%5D%5Bfield%5D=Ordre&sort%5B0%5D%5Bdirection%5D=asc';
     const[rubRecs,presRecs]=await Promise.all([
-      atFetchAll(TBL_RUBRIQUES,sp),
-      atFetchAll(TBL_PRESTATIONS,sp)
+      atFetchAll(TBL_RUBRIQUES),
+      atFetchAll(TBL_PRESTATIONS)
     ]);
+    rubRecs.sort((a,b)=>(a.fields.Ordre||0)-(b.fields.Ordre||0));
+    presRecs.sort((a,b)=>(a.fields.Ordre||0)-(b.fields.Ordre||0));
     _rubRecords=rubRecs;
     _presRecords=presRecs;
     buildCatalogue(rubRecs,presRecs);
