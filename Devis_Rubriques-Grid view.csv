@@ -1,15 +1,15 @@
-﻿Nom_FR,Nom_EN,Ordre,Type_Rendu,Mode_Nouveau,Mode_Remontage,Mode_Stockage,Mode_Mobilier
-Etude & Maîtrise d'œuvre,Design & Project Management,1,Phases,Défaut,Optionnel,Masqué,Masqué
+Nom_FR,Nom_EN,Ordre,Type_Rendu,Mode_Nouveau,Mode_Remontage,Mode_Stockage,Mode_Mobilier
+Étude & Maîtrise d'œuvre,Design & Project Management,1,Phases,Défaut,Optionnel,Masqué,Masqué
 Revêtement de sol & Habillage mural,Flooring & Wall Covering,2,Standard,Défaut,Défaut,Masqué,Masqué
-Menuiserie & Agencement,Carpentry & Fit-out,3,Standard,Défaut,Optionnel,Masqué,Optionnel
-Electricité & Eclairage,Electrical & Lighting,4,Standard,Défaut,Défaut,Masqué,Masqué
-Audiovisuel & Digital,AV & Digital Solutions,5,Standard,Défaut,Défaut,Masqué,Optionnel
+Menuiserie & Agencement,Joinery & Fitting,3,Standard,Défaut,Optionnel,Masqué,Optionnel
+Électricité & Éclairage,Electrical & Lighting,4,Standard,Défaut,Défaut,Masqué,Masqué
+Audiovisuel & Digital,Audiovisual & Digital,5,Standard,Défaut,Défaut,Masqué,Optionnel
 Mobilier & Accessoires,Furniture & Accessories,6,Standard,Défaut,Optionnel,Masqué,Défaut
-Enseigne & Visibilité,Signage & Branding,7,Standard,Défaut,Optionnel,Masqué,Optionnel
-Signalétique & Visuels,Graphics & Wayfinding,8,Standard,Défaut,Défaut,Masqué,Optionnel
-Transport & Logistique,Shipping & Logistics,9,Standard,Défaut,Défaut,Défaut,Défaut
-Stockage & Conservation,Storage & Maintenance,10,Lignes,Optionnel,Optionnel,Défaut,Masqué
+Enseigne & Visibilité,Signage & Visibility,7,Standard,Défaut,Optionnel,Masqué,Optionnel
+Signalétique & Visuels,Wayfinding & Visuals,8,Standard,Défaut,Défaut,Masqué,Optionnel
+Transport & Logistique,Transport & Logistics,9,Standard,Défaut,Défaut,Défaut,Défaut
+Stockage & Conservation,Storage & Preservation,10,Lignes,Optionnel,Optionnel,Défaut,Masqué
 Restauration & Hospitalité,Catering & Hospitality,11,Standard,Optionnel,Optionnel,Masqué,Masqué
-Nettoyage & Préparation,Cleaning & Pre-show setup,12,Standard,Optionnel,Optionnel,Masqué,Masqué
-Permanence & Assistance technique,On-site Technical Support,13,Standard,Optionnel,Optionnel,Masqué,Masqué
+Nettoyage & Préparation,Cleaning & Preparation,12,Standard,Optionnel,Optionnel,Masqué,Masqué
+Permanence & Assistance technique,On-site Technical Assistance,13,Standard,Optionnel,Optionnel,Masqué,Masqué
 Autre,Other,14,Standard,Optionnel,Optionnel,Optionnel,Optionnel
