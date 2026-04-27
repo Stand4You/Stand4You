@@ -521,14 +521,14 @@ async function atLoad(recordId){
       }
     }
 
-    /* Applique le type depuis Airtable si le champ existe (nouveau devis sans JSON) */
-    const rawT=(devis.Type_Devis||devis.Type||devis.Mode_Devis||'').toString()
+    /* Applique le type depuis le champ Airtable "Type" (nouveau devis sans JSON) */
+    const rawT=(devis.Type||'').toString()
       .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-    const tMap={n:'n',r:'r',s:'s',m:'m',
-      'nouveau stand':'n','nouveau':'n',
-      'remontage':'r',
-      'stockage':'s',
-      'mobilier':'m'};
+    const tMap={
+      'stand (nouveau)':'n','stand (remontage)':'r',
+      'stockage':'s','mobilier':'m',
+      n:'n',r:'r',s:'s',m:'m'
+    };
     if(tMap[rawT]&&tMap[rawT]!==st.type){
       st.type=tMap[rawT];
       buildCatalogue(_rubRecords,_presRecords);
