@@ -467,7 +467,10 @@ async function atLoad(recordId){
     if(devis.Devis_JSON){
       let restoreOk=false;
       try{
-        const saved=JSON.parse(devis.Devis_JSON);
+        /* Décode le format : '%7B...' = URL-encodé (nouveau), '{...' = JSON brut (ancien) */
+        const raw=devis.Devis_JSON;
+        const jsonStr=(raw.charAt(0)==='{' || raw.charAt(0)==='[') ? raw : decodeURIComponent(raw);
+        const saved=JSON.parse(jsonStr);
         restoreState(saved);
         /* buildCatalogue intentionnellement absent : sections depuis le JSON uniquement. */
         st.ctx._atRecordId=recordId;
@@ -581,8 +584,10 @@ async function atSave(){
   try{
     const{ht,ap,ttc,acompte,solde}=calc();
     const statMap={brouillon:'Brouillon',envoye:'Envoyé',accepte:'Accepté',refuse:'Refusé'};
+    /* encodeURIComponent évite toute corruption par Airtable (backslashes, rich text, etc.) */
+    const devisJSON=encodeURIComponent(JSON.stringify(st));
     const fullFields={
-      'Devis_JSON':JSON.stringify(st),
+      'Devis_JSON':devisJSON,
       'Montant_HT':Math.round(ht*100)/100,
       'Montant_TTC':Math.round(ttc*100)/100,
       'Acompte_HT':Math.round(acompte*100)/100,
@@ -595,7 +600,7 @@ async function atSave(){
       console.log('[atSave] PATCH complet OK');
     }catch(e1){
       console.warn('[atSave] PATCH complet échoué ('+e1.message+') → JSON seul');
-      await atPatch(TBL_DEVIS,st.ctx._atRecordId,{'Devis_JSON':JSON.stringify(st)});
+      await atPatch(TBL_DEVIS,st.ctx._atRecordId,{'Devis_JSON':devisJSON});
       console.log('[atSave] PATCH JSON seul OK');
     }
     st.savedAt=new Date().toISOString();
