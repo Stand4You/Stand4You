@@ -468,14 +468,19 @@ async function atLoad(recordId){
       try{
         const saved=JSON.parse(devis.Devis_JSON);
         restoreState(saved);
-        buildCatalogue(_rubRecords,_presRecords); /* catalogue pour le type restauré */
+        /* buildCatalogue intentionnellement absent ici :
+           les sections viennent exclusivement du JSON sauvegardé.
+           SC reste tel que construit par loadCatalogue() au démarrage. */
         st.ctx._atRecordId=recordId;
         st._atMode=true;
         if(devis['Créé par']&&devis['Créé par'].name)st.ctx._createdBy=devis['Créé par'].name;
+        console.log('[atLoad] JSON trouvé →',st.sections.length,'rubriques restaurées');
         showBanner('success',t('atLoaded'));
         render();
         return;
-      }catch(e){/* JSON corrompu → on initialise depuis les champs */}
+      }catch(e){console.warn('[atLoad] Échec restauration JSON, bascule sur champs Airtable :',e);}
+    } else {
+      console.log('[atLoad] Aucun JSON → rubriques par défaut du catalogue');
     }
 
     /* Sinon initialise depuis les champs Airtable */
@@ -561,7 +566,8 @@ function scheduleSave(){
   _saveTimer=setTimeout(()=>atSave(),2000);
 }
 async function atSave(){
-  if(!st.ctx._atRecordId)return;
+  if(!st.ctx._atRecordId){console.warn('[atSave] ignoré – _atRecordId null');return;}
+  console.log('[atSave] début →',st.ctx._atRecordId);
   showBanner('saving',t('atSaving'));
   try{
     const{ht,ap,ttc,acompte,solde}=calc();
@@ -577,17 +583,18 @@ async function atSave(){
     };
     try{
       await atPatch(TBL_DEVIS,st.ctx._atRecordId,fullFields);
+      console.log('[atSave] PATCH complet OK');
     }catch(e1){
-      /* Fallback : si certains champs posent problème (formule, nom incorrect),
-         on sauvegarde au minimum le JSON d'état */
-      console.warn('Full PATCH failed, retrying JSON-only:',e1.message);
+      console.warn('[atSave] PATCH complet échoué ('+e1.message+') → JSON seul');
       await atPatch(TBL_DEVIS,st.ctx._atRecordId,{'Devis_JSON':JSON.stringify(st)});
+      console.log('[atSave] PATCH JSON seul OK');
     }
     st.savedAt=new Date().toISOString();
     showBanner('success',t('atSaved'));
     setSavingDot(false);
     render();
   }catch(err){
+    console.error('[atSave] échec total :',err.message);
     showBanner('error',t('atError')+err.message);
     setSavingDot(false);
   }
