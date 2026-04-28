@@ -1329,12 +1329,14 @@ function printD(){
   const typeParam=params.get('type');
   if(typeParam&&['n','r','s','m'].includes(typeParam))st.type=typeParam;
   await loadCatalogue();
-  st.sections=DEFS_IDX.map((ci,i)=>mkSec(ci,i));
-  nSid=DEFS_IDX.length;
   if(recId&&recId.startsWith('rec')){
-    render(); /* Affiche l'UI vide pendant le chargement */
+    /* Sections viennent exclusivement d'atLoad (JSON ou champs Airtable) */
+    render();
     await atLoad(recId);
   } else {
+    /* Nouveau devis autonome : sections par défaut depuis le catalogue */
+    st.sections=DEFS_IDX.map((ci,i)=>mkSec(ci,i));
+    nSid=DEFS_IDX.length;
     render();
   }
 })();
