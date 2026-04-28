@@ -1004,23 +1004,17 @@ function showToast(msg){
 
 /* ═══ RENDER ═══ */
 function render(){
-  const isNewStand=st.type==='n';
   const readonly=st.status==='accepte'||st.status==='refuse';
   const cgvPh=`<div class="cgv-ph"><strong style="font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--navy)">${t('cgvTitle')}</strong><br>${t('cgvPh')}</div>`;
 
-  let body='';
-  if(!isNewStand){
-    body=`<p class="soon">${st.lang==='en'?'This type of quotation will be configured soon.':'Ce type de devis sera configuré prochainement.'}</p>`;
-  } else {
-    body=(readonly?`<div class="readonly-banner">🔒 ${t('readonlyNote')}<strong>${t('status'+st.status.charAt(0).toUpperCase()+st.status.slice(1))}</strong>${t('readonlyNote2')}</div>`:'')
-      +st.sections.map((s,i)=>secHTML(s,i)).join('')
-      +(readonly?'':addSelHTML())
-      +totHTML()
-      +legalBlock('nonInclus','nonInclusTitle')
-      +legalBlock('conditions','condTitle')
-      +legalBlock('propriete','propTitle')
-      +cgvPh;
-  }
+  const body=(readonly?`<div class="readonly-banner">🔒 ${t('readonlyNote')}<strong>${t('status'+st.status.charAt(0).toUpperCase()+st.status.slice(1))}</strong>${t('readonlyNote2')}</div>`:'')
+    +st.sections.map((s,i)=>secHTML(s,i)).join('')
+    +(readonly?'':addSelHTML())
+    +totHTML()
+    +legalBlock('nonInclus','nonInclusTitle')
+    +legalBlock('conditions','condTitle')
+    +legalBlock('propriete','propTitle')
+    +cgvPh;
 
   document.getElementById('app').innerHTML=
     headerHTML()
