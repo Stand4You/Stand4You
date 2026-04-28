@@ -493,7 +493,7 @@ async function atLoad(recordId){
         st.ctx.cliTVA=cf.Numero_TVA||'';
         const nature=(cf.Nature_TVA||'fr').toLowerCase();
         st.ctx.cliNature=nature;
-        uTVA(nature==='eu'?'eu':nature==='export'?'export':'fr');
+        st.tvaMode=nature==='eu'?'eu':nature==='export'?'export':'fr';
         st.ctx._atClientId=clientRecId;
       }
     }
@@ -530,12 +530,10 @@ async function atLoad(recordId){
       'stockage':'s','mobilier':'m',
       n:'n',r:'r',s:'s',m:'m'
     };
-    if(tMap[rawT]&&tMap[rawT]!==st.type){
-      st.type=tMap[rawT];
-      buildCatalogue(_rubRecords,_presRecords);
-      st.sections=DEFS_IDX.map((ci,i)=>mkSec(ci,i));
-      nSid=DEFS_IDX.length;
-    }
+    if(tMap[rawT])st.type=tMap[rawT];
+    buildCatalogue(_rubRecords,_presRecords);
+    st.sections=DEFS_IDX.map((ci,i)=>mkSec(ci,i));
+    nSid=DEFS_IDX.length;
 
     showBanner('success',t('atLoaded'));
     render();
