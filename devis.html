@@ -547,8 +547,10 @@ async function atLoad(recordId){
 
     showBanner('success',t('atLoaded'));
     render();
-    /* Fige l'état initial dans Airtable pour les nouveaux devis sans JSON */
-    scheduleSave();
+    /* Sauvegarde immédiate (await) : garantit que Devis_JSON est écrit dans Airtable
+       avant tout rechargement de page. scheduleSave (debounce 2 s) ne suffisait pas
+       car un rafraîchissement rapide annule le timer et laisse Devis_JSON à null. */
+    await atSave();
   }catch(err){
     showBanner('error',t('atError')+err.message);
     render();
