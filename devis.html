@@ -387,7 +387,7 @@ async function atLoad(recordId){
   try{
     const devis=await atGet(TBL_DEVIS,recordId);
 
-    /* Restaure le JSON d'état si présent */
+    /* Restaure le JSON d'état si présent — le catalogue n'est JAMAIS utilisé pour les sections */
     if(devis.Devis_JSON){
       try{
         const saved=JSON.parse(devis.Devis_JSON);
@@ -395,10 +395,19 @@ async function atLoad(recordId){
         st.ctx._atRecordId=recordId;
         st._atMode=true;
         if(devis['Créé par']&&devis['Créé par'].name)st.ctx._createdBy=devis['Créé par'].name;
+        console.log('[atLoad] JSON restauré →',st.sections.length,'rubriques (catalogue ignoré)');
         showBanner('success',t('atLoaded'));
         render();
         return;
-      }catch(e){/* JSON corrompu → on initialise depuis les champs */}
+      }catch(e){
+        /* Échec JSON : on n'écrase PAS avec le catalogue — on affiche une erreur */
+        console.error('[atLoad] Échec restauration JSON :',e);
+        showBanner('error','Erreur lecture JSON : '+e.message);
+        render();
+        return;
+      }
+    } else {
+      console.log('[atLoad] Aucun JSON → rubriques par défaut du catalogue');
     }
 
     /* Sinon initialise depuis les champs Airtable */
@@ -540,7 +549,8 @@ function restoreState(data){
   st.status=data.status||'brouillon';
   st.savedAt=data.savedAt||null;
   st._atMode=data._atMode||false;
-  st.sections=data.sections.map(s=>{
+  const secs=Array.isArray(data.sections)?data.sections:[];
+  st.sections=secs.map(s=>{
     s.lines=(s.lines||[]).map(l=>{l.id=nLid++;if(l.storageType)dopen[l.id]=true;return l;});
     return s;
   });
