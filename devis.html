@@ -51,11 +51,12 @@ body{background:var(--cream);padding:1.5rem 1rem}
 .ctx-row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .at-src{font-size:9px;color:var(--gold);font-style:italic;margin-top:2px;display:flex;align-items:center;gap:3px}
 
-/* ── TABS ── */
-.tabs{display:flex;gap:0;margin-bottom:.75rem;border-bottom:2px solid var(--navy)}
-.tab{padding:9px 16px;border:none;background:none;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--sgray);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;letter-spacing:.02em;transition:color .15s}
-.tab.on{color:var(--navy);border-bottom-color:var(--gold);font-weight:500}
-.tab:hover:not(.on){color:var(--navy)}
+/* ── TYPE VIGNETTE ── */
+.type-vignette{display:flex;align-items:center;gap:10px;margin-bottom:.75rem;padding:10px 16px;background:var(--navy);border-radius:8px;border:0.5px solid rgba(201,169,110,.25)}
+.tv-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tv-lbl{font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(201,169,110,.6);font-family:'DM Sans',sans-serif;white-space:nowrap}
+.tv-sep{width:1px;height:14px;background:rgba(201,169,110,.2);flex-shrink:0}
+.tv-val{font-family:'Cormorant Garamond',serif;font-size:17px;font-style:italic;font-weight:500;color:var(--cream);letter-spacing:.04em}
 
 /* ── CARDS ── */
 .card{border:0.5px solid rgba(13,27,42,.15);border-radius:8px;margin-bottom:8px;background:#fff;overflow:hidden}
@@ -203,7 +204,7 @@ function getSig(){return SIGNATAIRES[st.ctx._createdBy]||null;}
 /* ═══ TRANSLATIONS ═══ */
 const TR={
 fr:{
-  tabN:'Nouveau stand',tabR:'Remontage',tabS:'Stockage',tabM:'Mobilier',
+  typeDevis:'Type de devis',tabN:'Nouveau stand',tabR:'Remontage',tabS:'Stockage',tabM:'Mobilier',
   cat:'Catégorie',addPrest:'+ Ajouter une prestation',
   mHT:'Montant HT',offert:'Offert',offBadge:'OFFERT',
   totHTav:'Total HT avant remise',totHT:'Total HT',remise:'Remise',
@@ -237,7 +238,7 @@ fr:{
   accepteWebhook:'Devis accepté — envoi vers Pennylane…',
 },
 en:{
-  tabN:'New stand',tabR:'Re-installation',tabS:'Storage',tabM:'Furniture',
+  typeDevis:'Quote type',tabN:'New stand',tabR:'Re-installation',tabS:'Storage',tabM:'Furniture',
   cat:'Category',addPrest:'+ Add a service',
   mHT:'Amount excl. VAT',offert:'Complimentary',offBadge:'COMPLIMENTARY',
   totHTav:'Total excl. VAT before discount',totHT:'Total excl. VAT',remise:'Discount',
@@ -1023,7 +1024,7 @@ function render(){
 
   document.getElementById('app').innerHTML=
     headerHTML()
-    +`<div class="tabs">${[{id:'n',k:'tabN'},{id:'r',k:'tabR'},{id:'s',k:'tabS'},{id:'m',k:'tabM'}].map(x=>`<button class="tab${st.type===x.id?' on':''}" onclick="sType('${x.id}')">${t(x.k)}</button>`).join('')}</div>`
+    +`<div class="type-vignette"><span class="tv-dot" style="background:${{n:'#C9A96E',r:'#2F80ED',s:'#10B981',m:'#A78BFA'}[st.type]||'#C9A96E'}"></span><span class="tv-lbl">${t('typeDevis')}</span><span class="tv-sep"></span><span class="tv-val">${t('tab'+st.type.toUpperCase())}</span></div>`
     +ctxHTML()
     +body
     +sigBlockHTML()
