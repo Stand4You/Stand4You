@@ -465,6 +465,7 @@ async function atLoad(recordId){
 
     /* ── Bloc JSON : si Devis_JSON existe, les sections viennent EXCLUSIVEMENT du JSON ── */
     if(devis.Devis_JSON){
+      let restoreOk=false;
       try{
         const saved=JSON.parse(devis.Devis_JSON);
         restoreState(saved);
@@ -473,17 +474,19 @@ async function atLoad(recordId){
         st._atMode=true;
         if(devis['Créé par']&&devis['Créé par'].name)st.ctx._createdBy=devis['Créé par'].name;
         console.log('[atLoad] JSON restauré →',st.sections.length,'rubriques (catalogue ignoré)');
-        showBanner('success',t('atLoaded'));
-        render();
-        return;
+        restoreOk=true;
       }catch(e){
-        /* JSON illisible : on NE bascule PAS sur le catalogue — on affiche une erreur.
-           Cela évite d'écraser le Devis_JSON sauvegardé avec les rubriques par défaut. */
-        console.error('[atLoad] Échec restauration JSON :',e);
+        /* JSON illisible ou données corrompues : log détaillé pour diagnostic.
+           On NE bascule PAS sur le catalogue afin de ne pas écraser Devis_JSON. */
+        console.error('[atLoad] Échec parse/restore :',e);
+        try{console.error('[atLoad] Devis_JSON (200 car.) :',String(devis.Devis_JSON).substring(0,200));}catch{}
         showBanner('error','Erreur lecture JSON – '+e.message);
-        render();
-        return;
       }
+      /* render() est volontairement hors du try : une erreur de rendu ne doit pas
+         masquer l'erreur JSON, et sera remontée par le catch externe. */
+      if(restoreOk)showBanner('success',t('atLoaded'));
+      render();
+      return;
     }
     console.log('[atLoad] Aucun JSON → rubriques par défaut du catalogue');
 
