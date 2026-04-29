@@ -635,21 +635,35 @@ async function atSave(){
       ...(st.ctx.salonSurface&&st.type!=='s'&&st.type!=='m'?{'Surface_(m2)':parseFloat(st.ctx.salonSurface)}:{})
     };
     /* Essai 1 : tout en une fois */
+    let patchResp=null;
     try{
-      await atPatch(TBL_DEVIS,st.ctx._atRecordId,{...coreFields,...extFields});
+      patchResp=await atPatch(TBL_DEVIS,st.ctx._atRecordId,{...coreFields,...extFields});
       console.log('[atSave] PATCH complet OK');
     }catch(e1){
       console.warn('[atSave] PATCH complet échoué ('+e1.message+') → champs principaux seuls');
       /* Essai 2 : champs principaux seuls */
-      await atPatch(TBL_DEVIS,st.ctx._atRecordId,coreFields);
+      patchResp=await atPatch(TBL_DEVIS,st.ctx._atRecordId,coreFields);
       console.log('[atSave] PATCH principal OK');
       /* Essai 3 : champs étendus en arrière-plan, erreur ignorée */
       atPatch(TBL_DEVIS,st.ctx._atRecordId,extFields).catch(e2=>{
         console.warn('[atSave] champs étendus ignorés :',e2.message);
       });
     }
+    /* Diagnostic : comparer valeurs envoyées vs stockées par Airtable */
+    const rf=(patchResp&&patchResp.fields)||{};
+    const sentAp=Math.round(acompte*100)/100;
+    const sentSo=Math.round(solde*100)/100;
+    const storedAp=rf['Acompte_Total'];
+    const storedSo=rf['Solde_Total'];
+    const apMatch=storedAp===sentAp;
+    const soMatch=storedSo===sentSo;
+    console.log('[atSave] envoyé → Ap:'+sentAp+' So:'+sentSo+' | stocké → Ap:'+storedAp+' So:'+storedSo);
+    if(!apMatch||!soMatch){
+      console.warn('[atSave] ⚠ Airtable a ignoré certains champs (champs formule ?) – Ap match:'+apMatch+' So match:'+soMatch);
+    }
     st.savedAt=new Date().toISOString();
-    showBanner('success',t('atSaved')+' (HT:'+Math.round(ht)+' Ap:'+Math.round(acompte)+' So:'+Math.round(solde)+')');
+    const diagMsg=` envoyé Ap:${sentAp} So:${sentSo} | AT Ap:${storedAp??'?'} So:${storedSo??'?'}`;
+    showBanner(apMatch&&soMatch?'success':'error',t('atSaved')+diagMsg);
     setSavingDot(false);
     render();
   }catch(err){
