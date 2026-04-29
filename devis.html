@@ -610,24 +610,23 @@ function scheduleSave(){
 }
 async function atSave(){
   if(!st.ctx._atRecordId){console.warn('[atSave] ignoré – _atRecordId null');return;}
-  console.log('[atSave] début →',st.ctx._atRecordId);
   showBanner('saving',t('atSaving'));
   try{
     const{ht,rmt,ap,ttc,acompte,solde}=calc();
+    console.log('[atSave] calc →',{ht,rmt,ap,ttc,acompte,solde,acp:st.acp,remise:st.remise});
     const statMap={brouillon:'Brouillon',envoye:'Envoyé',accepte:'Accepté',refuse:'Refusé'};
-    /* encodeURIComponent évite toute corruption par Airtable (backslashes, rich text, etc.) */
     const devisJSON=encodeURIComponent(JSON.stringify(st));
-    /* Champs principaux : toujours sauvegardés (noms confirmés dans Airtable) */
+    /* Champs principaux garantis (aucun champ formule Airtable ici) */
     const coreFields={
       'Devis_JSON':devisJSON,
-      'Montant_HT':Math.round(ht*100)/100,
       'Acompte_Total':Math.round(acompte*100)/100,
       'Solde_Total':Math.round(solde*100)/100,
       'Statut':statMap[st.status]||'Brouillon',
       'Langue':st.lang
     };
-    /* Champs étendus : sauvegardés si le champ existe dans Airtable, sinon ignorés */
+    /* Champs étendus : tolèrent un rejet Airtable (champ formule ou absent) */
     const extFields={
+      'Montant_HT':Math.round(ht*100)/100,
       'Remise_HT':Math.round(rmt*100)/100,
       'Total_HT':Math.round(ap*100)/100,
       'Montant_TTC':Math.round(ttc*100)/100,
@@ -640,17 +639,17 @@ async function atSave(){
       await atPatch(TBL_DEVIS,st.ctx._atRecordId,{...coreFields,...extFields});
       console.log('[atSave] PATCH complet OK');
     }catch(e1){
-      console.warn('[atSave] PATCH complet échoué ('+e1.message+') → champs principaux');
-      /* Essai 2 : champs principaux seuls (garantis) */
+      console.warn('[atSave] PATCH complet échoué ('+e1.message+') → champs principaux seuls');
+      /* Essai 2 : champs principaux seuls */
       await atPatch(TBL_DEVIS,st.ctx._atRecordId,coreFields);
       console.log('[atSave] PATCH principal OK');
       /* Essai 3 : champs étendus en arrière-plan, erreur ignorée */
       atPatch(TBL_DEVIS,st.ctx._atRecordId,extFields).catch(e2=>{
-        console.warn('[atSave] champs étendus ignorés (champ absent ?) :',e2.message);
+        console.warn('[atSave] champs étendus ignorés :',e2.message);
       });
     }
     st.savedAt=new Date().toISOString();
-    showBanner('success',t('atSaved'));
+    showBanner('success',t('atSaved')+' (HT:'+Math.round(ht)+' Ap:'+Math.round(acompte)+' So:'+Math.round(solde)+')');
     setSavingDot(false);
     render();
   }catch(err){
