@@ -467,26 +467,36 @@ async function atLoad(recordId){
     if(devis.Devis_JSON){
       let restoreOk=false;
       try{
-        /* Décode le format : '%7B...' = URL-encodé (nouveau), '{...' = JSON brut (ancien) */
+        /* Décode le format : '%7B...' = URL-encodé (nouveau), '{...' = JSON brut (ancien/corrompu) */
         const raw=devis.Devis_JSON;
-        const jsonStr=(raw.charAt(0)==='{' || raw.charAt(0)==='[') ? raw : decodeURIComponent(raw);
-        const saved=JSON.parse(jsonStr);
+        let jsonStr=(raw.charAt(0)==='{' || raw.charAt(0)==='[') ? raw : decodeURIComponent(raw);
+        let saved;
+        try{
+          saved=JSON.parse(jsonStr);
+        }catch(e1){
+          /* Tentative de réparation : Airtable (rich text activé) supprimait un niveau
+             de backslash, laissant des séquences \X invalides. On les retire. */
+          console.warn('[atLoad] Parse échoué ('+e1.message+'), tentative réparation…');
+          const repaired=jsonStr.replace(/\\([^"\\\/bfnrtu])/g,'$1');
+          saved=JSON.parse(repaired);
+          console.warn('[atLoad] JSON réparé avec succès');
+        }
         restoreState(saved);
         /* buildCatalogue intentionnellement absent : sections depuis le JSON uniquement. */
         st.ctx._atRecordId=recordId;
         st._atMode=true;
+        /* Numéro de devis : Airtable est la source de vérité (Fx_Numero). */
+        if(devis.Fx_Numero)st.ctx.num=devis.Fx_Numero;
         if(devis['Créé par']&&devis['Créé par'].name)st.ctx._createdBy=devis['Créé par'].name;
         console.log('[atLoad] JSON restauré →',st.sections.length,'rubriques (catalogue ignoré)');
         restoreOk=true;
       }catch(e){
-        /* JSON illisible ou données corrompues : log détaillé pour diagnostic.
-           On NE bascule PAS sur le catalogue afin de ne pas écraser Devis_JSON. */
+        /* JSON illisible même après réparation : log détaillé, pas de bascule catalogue. */
         console.error('[atLoad] Échec parse/restore :',e);
         try{console.error('[atLoad] Devis_JSON (200 car.) :',String(devis.Devis_JSON).substring(0,200));}catch{}
         showBanner('error','Erreur lecture JSON – '+e.message);
       }
-      /* render() est volontairement hors du try : une erreur de rendu ne doit pas
-         masquer l'erreur JSON, et sera remontée par le catch externe. */
+      /* render() hors du try : erreur de rendu remontée par le catch externe, pas confondue avec erreur JSON. */
       if(restoreOk)showBanner('success',t('atLoaded'));
       render();
       return;
