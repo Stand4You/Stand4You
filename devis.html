@@ -523,7 +523,7 @@ async function atLoad(recordId){
       if(clientRecId.startsWith('rec')){
         const cf=await atGet(TBL_CLIENT,clientRecId);
         st.ctx.cliSociete=cf.Nom||'';
-        st.ctx.cliContact=cf.Contact_Nom||'';
+        st.ctx.cliContact=cf.Contact_Nom_Complet||cf.Contact_Nom||'';
         st.ctx.cliEmail=cf.Email||'';
         st.ctx.cliAdresse=cf.Adresse||'';
         st.ctx.cliTVA=cf.Numero_TVA||'';
@@ -539,8 +539,8 @@ async function atLoad(recordId){
       const evtRecId=Array.isArray(devis.EVENEMENT)?devis.EVENEMENT[0]:devis.EVENEMENT;
       if(evtRecId.startsWith('rec')){
         const ef=await atGet(TBL_EVNT,evtRecId);
-        /* Nom du salon depuis le champ texte Fx_Nom ex: "SIMPPAR 2026" */
-        st.ctx.salonNom=ef.Salon?(Array.isArray(ef.Salon)?ef.Salon[0]:ef.Salon):(ef.Fx_Nom||'');
+        /* Nom : vlookup Evenement du devis en priorité, sinon Fx_Nom de l'événement */
+        st.ctx.salonNom=devis.Evenement?String(devis.Evenement):(ef.Fx_Nom||'');
         /* Dates */
         const d1=ef.Date_Debut?new Date(ef.Date_Debut).toLocaleDateString('fr-FR'):null;
         const d2=ef.Date_Fin?new Date(ef.Date_Fin).toLocaleDateString('fr-FR'):null;
@@ -551,12 +551,13 @@ async function atLoad(recordId){
           const salonRecId=Array.isArray(ef.Salon)?ef.Salon[0]:ef.Salon;
           if(salonRecId.startsWith('rec')){
             const sf=await atGet(TBL_SALON,salonRecId);
-            st.ctx.salonNom=sf.Nom||st.ctx.salonNom;
             st.ctx.salonLieu=sf.Adresse||'';
           }
         }
       }
     }
+    /* Fallback : champ Evenement seul sans EVENEMENT lié */
+    if(!st.ctx.salonNom&&devis.Evenement)st.ctx.salonNom=String(devis.Evenement);
 
     /* Applique le type depuis le champ Airtable "Type" (nouveau devis sans JSON) */
     const rawT=(devis.Type||'').toString()
@@ -792,7 +793,7 @@ function atSrcTag(txt){return`<div class="at-src">⬡ ${txt||'Airtable'}</div>`;
 function ctxHTML(){
   const c=st.ctx;
   const validDate=()=>{
-    try{const d=new Date(c.dateEmission);d.setDate(d.getDate()+(parseInt(c.validite)||7));return d.toLocaleDateString('fr-FR');}catch{return'—';}
+    try{const d=new Date(c.dateEmission);d.setDate(d.getDate()+(parseInt(c.validite)||7));return d.toISOString().split('T')[0];}catch{return'';}
   };
   const readonly=st.status==='accepte'||st.status==='refuse';
   return`<div class="context-block">
@@ -808,25 +809,24 @@ function ctxHTML(){
       <div class="ctx-group">
         <h4>${t('clientSociete')}</h4>
         <div class="ctx-field"><label>${t('clientSociete')}</label><input type="text" value="${esc(c.cliSociete)}" placeholder="" ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliSociete',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
+        <div class="ctx-field"><label>${t('clientAdresse')}</label><input type="text" value="${esc(c.cliAdresse)}" placeholder="" ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliAdresse',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
+        <div class="ctx-field"><label>${t('clientContact')}</label><input type="text" value="${esc(c.cliContact)}" placeholder="" ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliContact',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
         <div class="ctx-field"><label>${st.lang==='en'?'VAT number':'N° TVA'}</label><input type="text" value="${esc(c.cliTVA)}" placeholder="" ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliTVA',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
-        <div class="ctx-field"><label>${t('clientEmail')}</label><input type="email" value="${esc(c.cliEmail)}" placeholder="" ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliEmail',this.value);scheduleSave()"></div>
-        <div class="ctx-field"><label>${t('clientAdresse')}</label><input type="text" value="${esc(c.cliAdresse)}" placeholder="" ${readonly||st._atMode?'readonly':''} oninput="uCtx('cliAdresse',this.value);scheduleSave()"></div>
 
       </div>
       <div class="ctx-group">
-        <h4>${t('salonNom')}</h4>
+        <h4>${st.lang==='en'?'Show / Project':'Salon / Projet'}</h4>
         <div class="ctx-field"><label>${t('salonNom')}</label><input type="text" value="${esc(c.salonNom)}" placeholder="" ${readonly||st._atMode?'readonly':''} oninput="uCtx('salonNom',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
         <div class="ctx-field"><label>${t('salonLieu')}</label><input type="text" value="${esc(c.salonLieu)}" placeholder="" ${readonly||st._atMode?'readonly':''} oninput="uCtx('salonLieu',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
         <div class="ctx-field"><label>${t('salonDates')}</label><input type="text" value="${esc(c.salonDates)}" placeholder="" ${readonly||st._atMode?'readonly':''} oninput="uCtx('salonDates',this.value);scheduleSave()">${st._atMode?atSrcTag():''}</div>
-        <div class="ctx-field"><label>${t('salonSurface')}</label><input type="number" value="${esc(c.salonSurface)}" placeholder="" ${readonly?'readonly':''} oninput="uCtx('salonSurface',this.value);scheduleSave()"></div>
+        ${st.type!=='s'&&st.type!=='m'?`<div class="ctx-field"><label>${t('salonSurface')}</label><input type="number" value="${esc(c.salonSurface)}" placeholder="" ${readonly?'readonly':''} oninput="uCtx('salonSurface',this.value);scheduleSave()"></div>`:''}
       </div>
       <div class="ctx-group">
-        <h4>${t('devisNum')}</h4>
+        <h4>${st.lang==='en'?'Quote':'Devis'}</h4>
         <div class="ctx-field"><label>${t('devisNum')}</label><div style="font-size:13px;font-weight:500;color:var(--navy);padding:5px 8px;border:0.5px solid rgba(13,27,42,.15);border-radius:5px;background:rgba(13,27,42,.03)">${esc(c.num||'—')}</div></div>
         <div class="ctx-field"><label>${t('devisDate')}</label><input type="date" value="${esc(c.dateEmission)}" ${readonly?'readonly':''} oninput="uCtx('dateEmission',this.value)"></div>
-        <div class="ctx-field"><label>${st.lang==='fr'?'Validité (jours)':'Valid for (days)'}</label><input type="number" value="${esc(c.validite)}" min="1" max="90" ${readonly?'readonly':''} oninput="uCtx('validite',this.value)">
-          <div style="font-size:10px;color:var(--sgray);margin-top:3px">${st.lang==='fr'?'Expire le':'Expires'} ${validDate()}</div>
-        </div>
+        <div class="ctx-field"><label>${st.lang==='fr'?'Validité (jours)':'Valid for (days)'}</label><input type="number" value="${esc(c.validite)}" min="1" max="90" ${readonly?'readonly':''} oninput="uCtx('validite',this.value)"></div>
+        <div class="ctx-field"><label>${st.lang==='fr'?'Date d\'expiration':'Expiry date'}</label><input type="date" value="${validDate()}" readonly></div>
 
       </div>
     </div>`:''}
@@ -1317,11 +1317,11 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
   ${(c.cliSociete||c.salonNom)?`<div class="info-strip">
     <div class="info-group">
       <h5>${isEn?'Client':'Client'}</h5>
-      <p><strong>${esc(c.cliSociete||'—')}</strong>${c.cliContact?`<br>${esc(c.cliContact)}`:''}${c.cliAdresse?`<br>${esc(c.cliAdresse)}`:''}${c.cliEmail?`<br>${esc(c.cliEmail)}`:''}${c.cliTVA?`<br>N° TVA : ${esc(c.cliTVA)}`:''}</p>
+      <p><strong>${esc(c.cliSociete||'—')}</strong>${c.cliAdresse?`<br>${esc(c.cliAdresse)}`:''}${c.cliContact?`<br>${esc(c.cliContact)}`:''}${c.cliTVA?`<br>N° TVA : ${esc(c.cliTVA)}`:''}</p>
     </div>
     <div class="info-group">
       <h5>${isEn?'Show / Project':'Salon / Projet'}</h5>
-      <p><strong>${esc(c.salonNom||'—')}</strong>${c.salonLieu?`<br>${esc(c.salonLieu)}`:''}${c.salonDates?`<br>${esc(c.salonDates)}`:''}${c.salonSurface?`<br>Surface\u00a0: ${c.salonSurface}\u00a0m²`:''}</p>
+      <p><strong>${esc(c.salonNom||'—')}</strong>${c.salonLieu?`<br>${esc(c.salonLieu)}`:''}${c.salonDates?`<br>${esc(c.salonDates)}`:''}${c.salonSurface&&st.type!=='s'&&st.type!=='m'?`<br>Surface\u00a0: ${c.salonSurface}\u00a0m²`:''}</p>
     </div>
   </div>`:''}
 
