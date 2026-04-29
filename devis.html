@@ -292,6 +292,12 @@ conditions:"Deposit: The deposit is due upon ordering. A deposit invoice will be
 propriete:"Plans, studies and creative works remain the intellectual property of Stand 4 You. No transfer of rights is included unless otherwise stated in this quotation."
 }};
 
+const LEGAL_DEF_STOCKAGE={
+fr:{
+nonInclus:"• Entrée et sortie d'éléments constitutifs du stand (hors du besoin pour location ultérieure)\n• Plus généralement, tous les postes non cités au présent devis",
+conditions:"Prestation payable à terme à échoir. Une facture sera émise à la signature du présent devis. Le règlement de la facture conditionne le stockage des éléments constitutifs de stands. À défaut de réception du paiement à réception, la conservation ne pourra être garantie, sans que la responsabilité de Stand 4 You ne puisse être engagée quant aux éventuels impacts.\n\nReports ou annulations : Les conditions applicables en cas de report ou d'annulation de la commande ou de l'événement sont définies dans les Conditions Générales de Prestations, Location et Vente (CGPLV), acceptées par le client.\n\nPénalités et escompte : Tout retard de paiement entraîne l'application de pénalités de retard et d'une indemnité forfaitaire légale, conformément aux dispositions des CGPLV. Aucun escompte pour règlement anticipé n'est accordé."
+}};
+
 /* ═══ CATALOGUE ═══ */
 let SC=[];
 let DEFS_IDX=[];
@@ -706,6 +712,16 @@ function getLegal(){
   if(!st.legal[st.lang])st.legal[st.lang]=JSON.parse(JSON.stringify(LEGAL_DEF[st.lang]||LEGAL_DEF.fr));
   return st.legal[st.lang];
 }
+function legalTxt(key){
+  const stored=getLegal()[key]||'';
+  if(st.type==='s'&&(key==='nonInclus'||key==='conditions')){
+    const stkDef=(LEGAL_DEF_STOCKAGE.fr||{})[key]||'';
+    const genDef=(LEGAL_DEF[st.lang]||LEGAL_DEF.fr)[key]||'';
+    /* Use stockage default unless user has customised away from generic default */
+    if(!stored||stored===genDef)return stkDef;
+  }
+  return stored;
+}
 function updT(){
   const{ht,rmt,ap,tva,ttc,acompte,solde}=calc();
   const hr=(parseFloat(st.remise)||0)>0;
@@ -980,7 +996,7 @@ function totHTML(){
       ${isFR?`<span id="vtva">${fmt(tva)}</span>`:`<span class="tva-mention" id="vtva">${ment}</span>`}
     </div>
     ${isFR?`<div class="trow ttc"><span class="lbl">${t('totTTC')}</span><span id="vttc">${fmt(ttc)}</span></div>`:''}
-    <div class="trow trow-sep trow-verify">
+    ${st.type!=='s'?`<div class="trow trow-sep trow-verify">
       <div style="display:flex;align-items:center;gap:8px">
         <span class="verify-badge">${t('verifLbl')}</span>
         <span class="lbl">${t('acompte')}</span>
@@ -988,12 +1004,12 @@ function totHTML(){
         <span style="font-size:12px;color:var(--sgray)">${isFR?'% TTC':'% HT'}</span>
       </div><span id="vacp">${fmt(acompte)}</span>
     </div>
-    <div class="trow"><span class="lbl">${t('solde')}</span><span id="vsol">${fmt(solde)}</span></div>
+    <div class="trow"><span class="lbl">${t('solde')}</span><span id="vsol">${fmt(solde)}</span></div>`:''}
   </div>`;
 }
 function legalBlock(key,titleKey){
   const isEditing=!!lEdit[key];
-  const raw=getLegal()[key]||'';
+  const raw=legalTxt(key);
   const body=isEditing?`<textarea class="legal-ta" data-lkey="${key}" rows="8">${esc(raw)}</textarea>`
     :raw.split('\n\n').map(p=>`<div class="legal-txt">${esc(p).replace(/\n/g,'<br>')}</div>`).join('');
   return`<div class="legal-sec"><div class="legal-hdr"><div class="lt-ui">${t(titleKey)}</div><button class="btn-legal-edit" onclick="togLegal('${key}')">${isEditing?t('saveLegal'):t('editLegal')}</button></div>${body}</div>`;
@@ -1204,7 +1220,7 @@ function buildPDF(){
       <tr class="ra"><td class="tl">${t('totHTap')}</td><td class="tv">${fmt(ap)}</td></tr>`}
   ${isFR?`<tr><td class="tl">${t('tvaFR')}</td><td class="tv">${fmt(tva)}</td></tr><tr class="rt"><td class="tl">${t('totTTC')}</td><td class="tv">${fmt(ttc)}</td></tr>`
         :`<tr class="${!hr?'rt':'ra'}"><td class="tl">${t('totHT')}</td><td class="tv">${fmt(ap)}</td></tr>${ment?`<tr><td colspan="2" style="font-style:italic;font-size:9px;color:#6B7280;padding-top:3px;line-height:1.4">${ment}</td></tr>`:''}`}
-  ${pct>0?`<tr class="rs"><td class="tl">${t('acompte')} (${pct}\u00a0%)</td><td class="tv">${fmt(acompte)}</td></tr><tr><td class="tl">${t('solde')}</td><td class="tv">${fmt(solde)}</td></tr>`:''}`;
+  ${pct>0&&st.type!=='s'?`<tr class="rs"><td class="tl">${t('acompte')} (${pct}\u00a0%)</td><td class="tv">${fmt(acompte)}</td></tr><tr><td class="tl">${t('solde')}</td><td class="tv">${fmt(solde)}</td></tr>`:''}`;
 
   const acceptTxt=isEn
     ?`By signing this quotation, the Client acknowledges having read and accepted without reservation the entirety of this offer and the General Terms and Conditions attached. The order will only be definitively recorded upon receipt of this document bearing the mention "Accepted" and payment of the deposit.`
@@ -1311,8 +1327,8 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
 
   <table class="t"><thead><tr><th></th><th>${t('desig')}</th><th style="text-align:right">${t('mHTcol')}</th></tr></thead><tbody>${rows}</tbody></table>
   <div class="tw"><div class="ti"><table>${tRows}</table></div></div>
-  ${lblock(t('nonInclusTitle'),lg.nonInclus)}
-  ${lblock(t('condTitle'),lg.conditions)}
+  ${lblock(t('nonInclusTitle'),legalTxt('nonInclus'))}
+  ${lblock(t('condTitle'),legalTxt('conditions'))}
   ${lblock(t('propTitle'),lg.propriete)}
   <div class="accept-box"><p class="accept-txt">${acceptTxt}</p></div>
   <div class="sw">
