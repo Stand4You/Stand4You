@@ -261,7 +261,7 @@ en:{
   qte:'Qty',uprice:'Unit price',mois:'month',semestre:'semester',annee:'year',
   nonInclusTitle:'Items not included in this quotation',
   condTitle:'Financial terms',propTitle:'Intellectual property',
-  cgvTitle:'General Terms and Conditions of Service and Stand Rental',
+  cgvTitle:'General Terms and Conditions of Services, Rental and Sales',
   editLegal:'✎ Edit',saveLegal:'✓ Save',
   supprimer:'Delete',descph:'Detailed description…',
   editcat:'Edit name',confirmcat:'✓ Confirm name',resetcat:'↩ Reset to list',
@@ -1316,12 +1316,12 @@ function buildPDF(){
       <tr><td class="tl">${t('remise')}${st.rt==='%'?` (${st.remise}\u00a0%)`:''}]</td><td class="tv">− ${fmt(rmt)}</td></tr>
       <tr class="ra"><td class="tl">${t('totHTap')}</td><td class="tv">${fmt(ap)}</td></tr>`}
   ${isFR?`<tr><td class="tl">${t('tvaFR')}</td><td class="tv">${fmt(tva)}</td></tr><tr class="rt"><td class="tl">${t('totTTC')}</td><td class="tv">${fmt(ttc)}</td></tr>`
-        :`<tr class="${!hr?'rt':'ra'}"><td class="tl">${t('totHT')}</td><td class="tv">${fmt(ap)}</td></tr>${ment?`<tr><td colspan="2" style="font-style:italic;font-size:9px;color:#6B7280;padding-top:3px;line-height:1.4">${ment}</td></tr>`:''}`}
+        :(st.tvaMode==='eu'||st.tvaMode==='fr_na'?`${ment?`<tr><td colspan="2" style="font-style:italic;font-size:9px;color:#6B7280;padding-top:3px;line-height:1.4">${ment}</td></tr>`:''}`:`<tr class="${!hr?'rt':'ra'}"><td class="tl">${t('totHT')}</td><td class="tv">${fmt(ap)}</td></tr>${ment?`<tr><td colspan="2" style="font-style:italic;font-size:9px;color:#6B7280;padding-top:3px;line-height:1.4">${ment}</td></tr>`:''}`)}
   ${pct>0&&st.type!=='s'?`<tr class="rs"><td class="tl">${t('acompte')} (${pct}\u00a0%)</td><td class="tv">${fmt(acompte)}</td></tr><tr><td class="tl">${t('solde')}</td><td class="tv">${fmt(solde)}</td></tr>`:''}`;
 
   const acceptTxt=isEn
-    ?`By signing this quotation, the Client acknowledges having read and accepted without reservation the entirety of this offer and the General Terms and Conditions attached. The order will only be definitively recorded upon receipt of this document bearing the mention "Accepted" and payment of the deposit.`
-    :`En signant ce devis, le Client reconnaît avoir pris connaissance et accepté sans réserve l'intégralité des pages de la présente offre ainsi que les Conditions Générales de Prestations, Location et Vente jointes. La commande ne sera définitivement enregistrée qu'à réception de ce document revêtu de la mention «\u00a0Bon pour accord\u00a0» et du règlement de l'acompte.`;
+    ?`By signing this quotation, the Client acknowledges having read and accepted without reservation the entirety of this offer and the General Terms and Conditions attached, permanently available upon request or at www.stand4you.com/cgv. The order will only be definitively recorded upon receipt of this document bearing the mention « Agreed & accepted » and payment of the deposit.`
+    :`En signant ce devis, le Client reconnaît avoir pris connaissance et accepté sans réserve l'intégralité des pages de la présente offre ainsi que les Conditions Générales de Prestations, Location et Vente jointes, accessibles en permanence sur demande ou à l'adresse www.stand4you.com/cgv. La commande ne sera définitivement enregistrée qu'à réception de ce document revêtu de la mention «\u00a0Bon pour accord\u00a0» et du règlement de l'acompte.`;
 
   return`<!DOCTYPE html><html lang="${st.lang}"><head><meta charset="UTF-8">
 <title>${t('titleDoc')} ${esc(c.num)} — Stand 4 You</title>
@@ -1403,22 +1403,21 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
     </div>
     <div class="doc-meta">
       <div style="font-size:9px;color:#F5F5F0;opacity:.7;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">${t('emis')} : ${todayFmt}  |  ${t('valable')} : ${validDate()}</div>
-      <div style="font-size:9px;color:rgba(245,245,240,.6)">${c.num?'N° '+esc(c.num):'—'}</div>
     </div>
   </div>
 
   <div style="text-align:center;padding:14px 0 10px;border-bottom:2px solid var(--gold);margin-bottom:14px">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);letter-spacing:.12em;text-transform:uppercase">${t('titleDoc')}</div>
-    <div style="font-size:11px;color:var(--gold);letter-spacing:.04em;margin-top:4px;font-style:italic">${t('subtitle')}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);letter-spacing:.12em;text-transform:uppercase">${t('titleDoc')}${c.num?` — N° ${esc(c.num)}`:''}</div>
+    <div style="font-size:11px;color:var(--gold);letter-spacing:.04em;margin-top:4px;font-style:italic">${(()=>{const sm={r:isEn?'Complete exhibition stand refurbishment (restocking, adaptation, rental, installation and dismantling)':"Remontage complet de stand d'exposition (déstockage, adaptation, location, installation et démontage)",s:isEn?'Exhibition stand element storage (warehousing, handling, maintenance)':"Conservation d'éléments de stand d'exposition (stockage, manutention, maintenance)",m:isEn?'Supply of exhibition stand furniture & accessories':"Fourniture de mobiliers & accessoires de stand d'exposition"};return sm[st.type]||t('subtitle');})()}</div>
   </div>
   ${(c.cliSociete||c.salonNom)?`<div class="info-strip">
     <div class="info-group">
       <h5>${isEn?'Client':'Client'}</h5>
-      <p><strong>${esc(c.cliSociete||'—')}</strong>${c.cliAdresse?`<br>${esc(c.cliAdresse)}`:''}${c.cliContact?`<br>${esc(c.cliContact)}`:''}${c.cliTVA?`<br>N° TVA : ${esc(c.cliTVA)}`:''}</p>
+      <p><strong>${esc(c.cliSociete||'—')}</strong>${c.cliContact?`<br>${isEn?'Att.':'Att :'} ${esc(c.cliContact)}`:''}${c.cliAdresse?`<br>${esc(c.cliAdresse)}`:''}${c.cliTVA?`<br>N° TVA : ${esc(c.cliTVA)}`:''}</p>
     </div>
     <div class="info-group">
       <h5>${isEn?'Show / Project':'Salon / Projet'}</h5>
-      <p><strong>${esc(c.salonNom||'—')}</strong>${c.salonLieu?`<br>${esc(c.salonLieu)}`:''}${c.salonDates?`<br>${esc(c.salonDates)}`:''}${c.salonSurface&&st.type!=='s'&&st.type!=='m'?`<br>Surface\u00a0: ${c.salonSurface}\u00a0m²`:''}</p>
+      <p><strong>${esc(c.salonNom||'—')}</strong>${c.cliEmail?`<br>${esc(c.cliEmail)}`:''}${c.salonDates?`<br>${esc(c.salonDates)}`:''}${c.salonSurface&&st.type!=='s'&&st.type!=='m'?`<br>Surface\u00a0: ${c.salonSurface}\u00a0m²`:''}</p>
     </div>
   </div>`:''}
 
@@ -1429,7 +1428,7 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
   ${lblock(t('propTitle'),lg.propriete)}
   <div class="accept-box"><p class="accept-txt">${acceptTxt}</p></div>
   <div class="sw">
-    <div class="sbox"><div class="sl">${isEn?'Client — Acceptance':'Client — Bon pour accord'}</div><div class="sn">${isEn?'Date, name, title and signature:':'Date, nom, prénom, qualité et signature\u00a0:'}</div><div class="si"></div></div>
+    <div class="sbox"><div class="sl">${isEn?'Client — Agreed & accepted':'Client — Bon pour accord'}</div><div class="sn">${isEn?'Date, name, title and signature:':'Date, nom, prénom, qualité et signature\u00a0:'}</div><div class="si"></div></div>
     <div class="sbox">${(()=>{const sig=getSig();const titre=sig?(isEn?sig.titre_en:sig.titre_fr):'';return`<div class="sl">${isEn?'Stand 4 You — Prepared by':'Stand 4 You — Établi par'}</div>${sig?`<div style="font-size:10px;font-weight:600;color:#0D1B2A;margin:4px 0 2px">${esc(sig.nom)}</div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">${esc(titre)}</div><div style="font-size:9px;color:#6B7280">${esc(sig.email)}</div><div style="font-size:9px;color:#6B7280;margin-bottom:16px">${esc(sig.tel)}</div><div class="si"></div>`:`<div class="sn">&nbsp;</div><div class="si"></div>`}`;})()}</div>
   </div>
   <div class="cgv-block">
@@ -1460,11 +1459,15 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
 }
 function checkAlerts(){
   const c=st.ctx;
+  const isEn=st.lang==='en';
   const alerts=[];
-  if(!c.cliSociete)alerts.push(st.lang==='en'?'Client name missing':'Nom du client manquant');
-  if(!c.cliAdresse)alerts.push(st.lang==='en'?'Client address missing':'Adresse client manquante');
-  if(!c.salonNom)alerts.push(st.lang==='en'?'Show/project name missing':'Nom du salon / projet manquant');
-  if(st.tvaMode==='eu'&&!c.cliTVA)alerts.push(st.lang==='en'?'EU client: VAT number required for reverse charge':'Client UE : N° TVA requis pour autoliquidation');
+  if(!c.cliSociete)alerts.push(isEn?'Client name missing':'Nom du client manquant');
+  if(!c.cliAdresse)alerts.push(isEn?'Client address missing':'Adresse client manquante');
+  if(!c.cliContact)alerts.push(isEn?'Client contact missing':'Contact client manquant');
+  if(st.tvaMode!=='fr_na'&&st.tvaMode!=='export'&&!c.cliTVA)alerts.push(isEn?'VAT number missing':'N° de TVA client manquant');
+  if(!c.salonNom)alerts.push(isEn?'Show/project name missing':'Nom du salon / projet manquant');
+  if(!c.salonLieu)alerts.push(isEn?'Venue missing':'Lieu du salon manquant');
+  if(!c.salonDates)alerts.push(isEn?'Show dates missing':'Dates du salon manquantes');
   return alerts;
 }
 function printD(){
