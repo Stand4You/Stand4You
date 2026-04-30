@@ -696,8 +696,8 @@ async function atSave(){
     let expiryDate='';
     try{const d=new Date(st.ctx.dateEmission);d.setDate(d.getDate()+(parseInt(st.ctx.validite)||7));expiryDate=d.toISOString().split('T')[0];}catch{}
     const devisJSON=encodeURIComponent(JSON.stringify(st));
-    /* Champs principaux garantis (aucun champ formule Airtable ici) */
-    const coreFields={
+    /* safeFields : purement numériques / texte / date — ne peut jamais provoquer de 422 */
+    const safeFields={
       'Devis_JSON':devisJSON,
       'Montant_HT':Math.round(ht*100)/100,
       'Remise_HT':Math.round(rmt*100)/100,
@@ -706,27 +706,27 @@ async function atSave(){
       'Acompte_Total':Math.round(acompte*100)/100,
       'Solde_Total':Math.round(solde*100)/100,
       'Validite_Jours':parseInt(st.ctx.validite)||7,
-      'Statut':statMap[st.status]||'Brouillon',
       ...(expiryDate?{'Date_Expiration':expiryDate}:{})
     };
-    /* Champs étendus : tolèrent un rejet Airtable silencieusement (single-selects dont les options peuvent manquer) */
-    const extFields={
+    /* softFields : champs single-select Airtable — rejetés silencieusement si l'option n'existe pas */
+    const softFields={
+      'Statut':statMap[st.status]||'Brouillon',
       'Langue':st.lang,
       'Regime_TVA':st.tvaMode,
       ...(st.ctx.salonSurface&&st.type!=='s'&&st.type!=='m'?{'Surface_(m2)':parseFloat(st.ctx.salonSurface)}:{})
     };
     /* Essai 1 : tout en une fois */
     try{
-      await atPatch(TBL_DEVIS,st.ctx._atRecordId,{...coreFields,...extFields});
+      await atPatch(TBL_DEVIS,st.ctx._atRecordId,{...safeFields,...softFields});
       console.log('[atSave] PATCH complet OK');
     }catch(e1){
-      console.warn('[atSave] PATCH complet échoué ('+e1.message+') → champs principaux seuls');
-      /* Essai 2 : champs principaux seuls */
-      await atPatch(TBL_DEVIS,st.ctx._atRecordId,coreFields);
-      console.log('[atSave] PATCH principal OK');
-      /* Essai 3 : champs étendus en arrière-plan, erreur ignorée */
-      if(Object.keys(extFields).length>0)atPatch(TBL_DEVIS,st.ctx._atRecordId,extFields).catch(e2=>{
-        console.warn('[atSave] champs étendus ignorés :',e2.message);
+      console.warn('[atSave] PATCH complet échoué ('+e1.message+') → safeFields seuls');
+      /* Essai 2 : champs sûrs uniquement — ne peut pas échouer avec 422 */
+      await atPatch(TBL_DEVIS,st.ctx._atRecordId,safeFields);
+      console.log('[atSave] PATCH sûr OK');
+      /* Essai 3 : single-selects en arrière-plan, erreur ignorée */
+      atPatch(TBL_DEVIS,st.ctx._atRecordId,softFields).catch(e2=>{
+        console.warn('[atSave] softFields ignorés :',e2.message);
       });
     }
     st.savedAt=new Date().toISOString();
@@ -1390,20 +1390,15 @@ function buildPDF(){
 <div class="cgv-art"><div class="cgv-art-title">Article 10 — Résiliation, droit applicable et dispositions finales</div><div class="cgv-art-body"><p>En cas de manquement grave d’une partie à ses obligations contractuelles, non régularisé dans un délai de quinze (15) jours suivant mise en demeure par lettre recommandée avec avis de réception, l’autre partie pourra résilier le contrat de plein droit, sans préjudice de tout dommage et intérêt.</p><p>Les présentes CGPLV sont régies par le droit français. Tout litige relatif à leur interprétation, leur exécution ou leur validité sera soumis, à défaut de règlement amiable, à la compétence exclusive du Tribunal de Commerce de Nice, même en cas de pluralité de défendeurs ou d’appel en garantie. Le Client professionnel renonce expressément à se prévaloir de la compétence de toute autre juridiction.</p></div></div>
 <div class="cgv-footer">Document confidentiel — propriété de Stand 4 You. Reproduction interdite sans autorisation expresse.</div>`;
 
-  const cgvHTML=(()=>{
-    const lang=st.lang;
-    if(CGV[lang]){
-      const ch=isEn?'General Terms and Conditions of Services, Rental and Sales':'Conditions G\u00e9n\u00e9rales de Prestations, Location et Vente';
-      const cs=isEn?'Stand 4 You \u00b7 Version 1.0 \u00b7 Effective as of April 2026':'Stand 4 You \u00b7 Version 1.0 \u00b7 En vigueur \u00e0 compter d\u2019avril 2026';
-      return`<div class="cgv-hdr"><span class="cgv-title">${ch}</span><span class="cgv-sub">${cs}</span></div>${CGV[lang]}`;
-    }
-    if(CGV_PDF[lang]){
-      const ch=isEn?'General Terms and Conditions of Services, Rental and Sales':'Conditions G\u00e9n\u00e9rales de Prestations, Location et Vente';
-      return`<div class="cgv-hdr"><span class="cgv-title">${ch}</span></div><p class="lp" style="font-style:italic;margin:12px 0 4px">${isEn?'General terms and conditions available as PDF (print separately):':'Conditions g\u00e9n\u00e9rales disponibles en PDF (\u00e0 imprimer s\u00e9par\u00e9ment)\u00a0:'} <a href="${CGV_PDF[lang]}" target="_blank" style="color:var(--gold)">${isEn?'Download PDF':'T\u00e9l\u00e9charger'}</a></p>`;
-    }
-    if(!isEn)return frCGV;
-    return`<p style="font-size:10px;color:var(--sg);font-style:italic;margin-top:4px">[English version of CGPLV to be inserted]</p>`;
-  })();
+  /* \u2500\u2500 CGV EN : coller le contenu entre les backticks ci-dessous \u2500\u2500 */
+  const enCGV=``;
+  /* \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 */
+
+  const cgvHTML=isEn
+    ?(enCGV
+        ?`<div class="cgv-hdr"><span class="cgv-title">General Terms and Conditions of Services, Rental and Sales</span><span class="cgv-sub">Stand 4 You \u00b7 Version 1.0 \u00b7 Effective as of April 2026</span></div>${enCGV}`
+        :`<div class="cgv-hdr"><span class="cgv-title">General Terms and Conditions of Services, Rental and Sales</span><span class="cgv-sub">Stand 4 You \u00b7 Version 1.0 \u00b7 Effective as of April 2026</span></div><p class="lp" style="font-style:italic;color:var(--sg);margin-top:8px">English version to be attached separately.</p>`)
+    :frCGV;
 
   return`<!DOCTYPE html><html lang="${st.lang}"><head><meta charset="UTF-8">
 <title>${t('titleDoc')} ${esc(c.num)} — Stand 4 You</title>
@@ -1555,7 +1550,7 @@ function printD(){
   const recId=params.get('id');
   const typeParam=params.get('type');
   if(typeParam&&['n','r','s','m'].includes(typeParam))st.type=typeParam;
-  await Promise.all([loadCatalogue(),loadDocuments()]);
+  await loadCatalogue();
   if(recId&&recId.startsWith('rec')){
     /* Sections viennent exclusivement d'atLoad (JSON ou champs Airtable) */
     render();
