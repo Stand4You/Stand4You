@@ -905,7 +905,7 @@ function csel(ci,sid,lid,sel){
     const gl=g.lbl?dc(g.lbl):null;
     o+=gl?`<optgroup label="${esc(gl)}">${opts}</optgroup>`:opts;
   }
-  return`<select onchange="uCat(${sid},${lid},this.value)">${o}</select>`;
+  return`<select class="cat-sel" onchange="uCat(${sid},${lid},this.value)">${o}</select>`;
 }
 function catBtns(ci,sid,l){
   if(l.custom&&!l.confirmed)
@@ -1169,8 +1169,12 @@ function render(){
     +bottomBarHTML();
 
   if(frozenUI){
-    document.querySelectorAll('.ni,.amt,.asmall,.ri,.desc-ta,.legal-ta,.badd,.add-sel').forEach(el=>{
-      el.disabled=true;el.style.opacity='.6';el.style.pointerEvents='none';
+    document.querySelectorAll(
+      '.ni,.amt,.asmall,.ri,.desc-ta,.legal-ta,.badd,.add-sel,'+
+      '.cinp,.cat-sel,.aper,.rtbtn,.tva-sel,.btn-legal-edit,.del'
+    ).forEach(el=>{el.disabled=true;el.style.opacity='.6';el.style.pointerEvents='none';});
+    document.querySelectorAll('.off-chk input[type="checkbox"]').forEach(el=>{
+      el.disabled=true;el.style.pointerEvents='none';
     });
   }
 }
