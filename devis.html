@@ -857,7 +857,8 @@ function ctxHTML(){
   const softLocked=!readonly&&!_unlocked&&(st.status==='envoye'||st.status==='expire');
   const frozenUI=readonly||softLocked;
   /* atRo : champs toujours rechargés depuis Airtable → lecture seule en mode brouillon AT */
-  const atRo=st._atMode&&st.status==='brouillon';
+  /* atRo : champs toujours rechargés depuis Airtable — jamais éditables dans l'UI */
+  const atRo=st._atMode;
   return`<div class="context-block">
     <div class="context-bar" onclick="togCtx()">
       <div class="context-bar-left">
