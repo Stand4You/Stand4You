@@ -483,9 +483,9 @@ async function atLoadLinked(devis){
     }
   }
   let projRecId=null;
-  /* lien direct Devis → Projet */
-  if(devis.PROJET&&devis.PROJET.length){
-    const pid=Array.isArray(devis.PROJET)?devis.PROJET[0]:devis.PROJET;
+  /* lien direct Devis → Projet (champ "Projet" = linked record vers table Projets) */
+  if(devis.Projet&&devis.Projet.length){
+    const pid=Array.isArray(devis.Projet)?devis.Projet[0]:devis.Projet;
     if(typeof pid==='string'&&pid.startsWith('rec'))projRecId=pid;
   }
   if(devis.EVENEMENT&&devis.EVENEMENT.length){
@@ -497,9 +497,9 @@ async function atLoadLinked(devis){
       const d2=ef.Date_Fin?new Date(ef.Date_Fin).toLocaleDateString('fr-FR'):null;
       st.ctx.salonDates=d1&&d2?`${d1} – ${d2}`:d1||'';
       st.ctx._atEvtId=evtRecId;
-      /* lien Evenement → Projet (fallback si pas de lien direct) */
-      if(!projRecId&&ef.PROJET&&ef.PROJET.length){
-        const pid=Array.isArray(ef.PROJET)?ef.PROJET[0]:ef.PROJET;
+      /* lien Evenement → Projet (fallback si pas de lien direct sur le devis) */
+      if(!projRecId&&ef.Projet&&ef.Projet.length){
+        const pid=Array.isArray(ef.Projet)?ef.Projet[0]:ef.Projet;
         if(typeof pid==='string'&&pid.startsWith('rec'))projRecId=pid;
       }
       if(ef.Salon&&ef.Salon.length){
@@ -550,6 +550,8 @@ async function atLoad(recordId){
         /* buildCatalogue intentionnellement absent : sections depuis le JSON uniquement. */
         st.ctx._atRecordId=recordId;
         st._atMode=true;
+        /* Statut toujours depuis Airtable (pas du JSON — peut avoir changé hors UI) */
+        st.status=(devis.Statut||'Brouillon').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
         if(devis['Créé par']&&devis['Créé par'].name)st.ctx._createdBy=devis['Créé par'].name;
         /* En brouillon : refresh systématique des champs Airtable (client, événement, num, dates) */
         if(st.status==='brouillon'){
@@ -652,13 +654,13 @@ async function atSave(){
       'Total_TTC':Math.round(ttc*100)/100,
       'Acompte_Total':Math.round(acompte*100)/100,
       'Solde_Total':Math.round(solde*100)/100,
+      'Validite_Jours':parseInt(st.ctx.validite)||7,
       'Statut':statMap[st.status]||'Brouillon',
       'Langue':st.lang,
       ...(expiryDate?{'Date_Expiration':expiryDate}:{})
     };
     /* Champs étendus : tolèrent un rejet Airtable (champ formule ou absent) */
     const extFields={
-      'Validite_Jours':parseInt(st.ctx.validite)||7,
       'Regime_TVA':st.tvaMode,
       ...(st.ctx.salonSurface&&st.type!=='s'&&st.type!=='m'?{'Surface_(m2)':parseFloat(st.ctx.salonSurface)}:{})
     };
@@ -884,9 +886,9 @@ function ctxHTML(){
       <div class="ctx-group">
         <h4>${st.lang==='en'?'Quote':'Devis'}</h4>
         <div class="ctx-field"><label>${t('devisNum')}</label><div style="font-size:13px;font-weight:500;color:var(--navy);padding:5px 8px;border:0.5px solid rgba(13,27,42,.15);border-radius:5px;background:rgba(13,27,42,.03)">${esc(c.num||'—')}</div>${atRo?atSrcTag():''}</div>
-        <div class="ctx-field"><label>${t('devisDate')}</label><input type="date" value="${esc(c.dateEmission)}" ${frozenUI?'readonly':''} oninput="uCtx('dateEmission',this.value)"></div>
-        <div class="ctx-field"><label>${st.lang==='fr'?'Validité (jours)':'Valid for (days)'}</label><input type="number" value="${esc(c.validite)}" min="1" max="90" ${frozenUI?'readonly':''} oninput="uCtx('validite',this.value)"></div>
-        <div class="ctx-field"><label>${st.lang==='fr'?'Date d\'expiration':'Expiry date'}</label><input type="date" value="${validDate()}" readonly>${atRo?atSrcTag():''}</div>
+        <div class="ctx-field"><label>${t('devisDate')}</label><input type="date" value="${esc(c.dateEmission)}" ${frozenUI?'readonly':''} oninput="uCtx('dateEmission',this.value);scheduleSave()"></div>
+        <div class="ctx-field"><label>${st.lang==='fr'?'Validité (jours)':'Valid for (days)'}</label><input type="number" value="${esc(c.validite)}" min="1" max="90" ${frozenUI?'readonly':''} oninput="uCtx('validite',this.value);scheduleSave()"></div>
+        <div class="ctx-field"><label>${st.lang==='fr'?'Date d\'expiration':'Expiry date'}</label><input id="inp-expiry" type="date" value="${validDate()}" readonly>${atRo?atSrcTag():''}</div>
 
       </div>
     </div>`:''}
@@ -1218,7 +1220,13 @@ function uAcp(v){st.acp=v;updT();}
 function togLang(){st.lang=st.lang==='fr'?'en':'fr';render();}
 function togLegal(key){if(lEdit[key]){const ta=document.querySelector(`[data-lkey="${key}"]`);if(ta)getLegal()[key]=ta.value;}lEdit[key]=!lEdit[key];render();}
 function togCtx(){st.ctx.ctxOpen=!st.ctx.ctxOpen;render();}
-function uCtx(k,v){st.ctx[k]=v;}
+function uCtx(k,v){
+  st.ctx[k]=v;
+  if(k==='dateEmission'||k==='validite'){
+    const el=document.getElementById('inp-expiry');
+    if(el){try{const d=new Date(st.ctx.dateEmission);d.setDate(d.getDate()+(parseInt(st.ctx.validite)||7));el.value=d.toISOString().split('T')[0];}catch{}}
+  }
+}
 function uStatus(v){
   const wasTerminal=st.status==='accepte'||st.status==='refuse';
   const becomesTerminal=v==='accepte'||v==='refuse';
