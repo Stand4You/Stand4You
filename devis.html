@@ -657,11 +657,11 @@ async function atSave(){
       'Validite_Jours':parseInt(st.ctx.validite)||7,
       'Statut':statMap[st.status]||'Brouillon',
       'Langue':st.lang,
+      'Regime_TVA':st.tvaMode,
       ...(expiryDate?{'Date_Expiration':expiryDate}:{})
     };
     /* Champs étendus : tolèrent un rejet Airtable (champ formule ou absent) */
     const extFields={
-      'Regime_TVA':st.tvaMode,
       ...(st.ctx.salonSurface&&st.type!=='s'&&st.type!=='m'?{'Surface_(m2)':parseFloat(st.ctx.salonSurface)}:{})
     };
     /* Essai 1 : tout en une fois */
@@ -674,7 +674,7 @@ async function atSave(){
       await atPatch(TBL_DEVIS,st.ctx._atRecordId,coreFields);
       console.log('[atSave] PATCH principal OK');
       /* Essai 3 : champs étendus en arrière-plan, erreur ignorée */
-      atPatch(TBL_DEVIS,st.ctx._atRecordId,extFields).catch(e2=>{
+      if(Object.keys(extFields).length>0)atPatch(TBL_DEVIS,st.ctx._atRecordId,extFields).catch(e2=>{
         console.warn('[atSave] champs étendus ignorés :',e2.message);
       });
     }
@@ -1290,7 +1290,7 @@ function buildPDF(){
         h+=gl.map(l=>`<tr class="ir"><td></td><td class="ci" colspan="2">• ${esc(effName(l))}${l.desc?`<span class="id">${esc(l.desc)}</span>`:''}</td></tr>`).join('');
         const ac=ph.off?`<td class="ca">${v>0?`<span style="text-decoration:line-through;opacity:.4">${fmt(v)}</span>`:''}&nbsp;<span class="bo">${t('offBadge')}</span></td>`:`<td class="ca">${v>0?fmt(v):'—'}</td>`;
         h+=`<tr class="par"><td></td><td class="cpl">${t('mHT')} ${lbl}</td>${ac}</tr>`;
-      }return h;
+      }return `<tbody style="break-inside:avoid;page-break-inside:avoid">`+h+`</tbody>`;
     }
     if(s.perLine){
       const stot=s.lines.reduce((x,l)=>x+lineAmt(l),0);
@@ -1300,12 +1300,12 @@ function buildPDF(){
         if(l.storageType){const tot=lineAmt(l);amtStr=l.lineOff?`<span class="bo">${t('offBadge')}</span>`:fmt(tot)+`&nbsp;<span style="font-size:9px;color:#9ca3af">(${l.qty||0}\u00a0×\u00a0${fmt(parseFloat(l.uprice)||0)}\u00a0/\u00a0${l.period})</span>`;}
         else{amtStr=l.lineOff?`<span style="text-decoration:line-through;opacity:.4">${fmt(l.lineHt||0)}</span>&nbsp;<span class="bo">${t('offBadge')}</span>`:fmt(l.lineHt||0);}
         return`<tr class="ir"><td></td><td class="ci">• ${esc(effName(l))}${l.desc?`<span class="id">${esc(l.desc)}</span>`:''}</td><td class="ca" style="font-size:10px">${amtStr}</td></tr>`;
-      }).join('');return h;
+      }).join('');return `<tbody style="break-inside:avoid;page-break-inside:avoid">`+h+`</tbody>`;
     }
     const v=parseFloat(s.ht)||0;
     const ac=s.off?`<td class="ca">${v>0?`<span style="text-decoration:line-through;opacity:.4">${fmt(v)}</span>`:''}&nbsp;<span class="bo">${t('offBadge')}</span></td>`:`<td class="ca">${v>0?fmt(v):'—'}</td>`;
     const lr=s.lines.filter(l=>effName(l)).map(l=>`<tr class="ir"><td></td><td class="ci">• ${esc(effName(l))}${l.desc?`<span class="id">${esc(l.desc)}</span>`:''}</td><td></td></tr>`).join('');
-    return`<tr class="sr"><td class="cn">${idx+1}</td><td class="cm">${esc(nm)}</td>${ac}</tr>${lr}`;
+    return`<tbody style="break-inside:avoid;page-break-inside:avoid"><tr class="sr"><td class="cn">${idx+1}</td><td class="cm">${esc(nm)}</td>${ac}</tr>${lr}</tbody>`;
   }).join('');
 
   const lblock=(title,raw)=>`<div class="ls"><div class="lt">${title}</div><div class="lb">${(raw||'').split('\n\n').map(p=>`<p class="lp">${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
@@ -1335,7 +1335,7 @@ body{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--navy);margin:0;
 footer.rf{position:fixed;bottom:0;left:0;right:0;height:18mm;display:flex;align-items:center;justify-content:center;padding:0 0mm;border-top:0.5px solid rgba(13,27,42,.12);background:#fff;font-size:7.5px;color:#9ca3af;text-align:center;line-height:1.6;z-index:100;}
 @page{@bottom-right{content:counter(page) " / " counter(pages);font-family:'DM Sans',sans-serif;font-size:8px;color:#9ca3af;margin-right:14mm;margin-bottom:4mm;}}
 .wrap{padding:0;}
-@media print{.pb,.np{display:none!important}}
+@media print{.pb,.np{display:none!important}.wrap{padding-bottom:22mm}}@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:""}}
 .doc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:10px 14px;background:#0D1B2A;border-radius:8px;border-bottom:none}
 .brand{display:flex;align-items:center;gap:10px}
 .brand-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#F5F5F0}
@@ -1421,16 +1421,16 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
     </div>
   </div>`:''}
 
-  <table class="t"><thead><tr><th></th><th>${t('desig')}</th><th style="text-align:right">${t('mHTcol')}</th></tr></thead><tbody>${rows}</tbody></table>
+  <table class="t"><thead><tr><th></th><th>${t('desig')}</th><th style="text-align:right">${t('mHTcol')}</th></tr></thead>${rows}</table>
   <div class="tw"><div class="ti"><table>${tRows}</table></div></div>
   ${lblock(t('nonInclusTitle'),legalTxt('nonInclus'))}
   ${lblock(t('condTitle'),legalTxt('conditions'))}
   ${lblock(t('propTitle'),lg.propriete)}
-  <div class="accept-box"><p class="accept-txt">${acceptTxt}</p></div>
+  <div style="break-inside:avoid;page-break-inside:avoid"><div class="accept-box"><p class="accept-txt">${acceptTxt}</p></div>
   <div class="sw">
     <div class="sbox"><div class="sl">${isEn?'Client — Agreed & accepted':'Client — Bon pour accord'}</div><div class="sn">${isEn?'Date, name, title and signature:':'Date, nom, prénom, qualité et signature\u00a0:'}</div><div class="si"></div></div>
     <div class="sbox">${(()=>{const sig=getSig();const titre=sig?(isEn?sig.titre_en:sig.titre_fr):'';return`<div class="sl">${isEn?'Stand 4 You — Prepared by':'Stand 4 You — Établi par'}</div>${sig?`<div style="font-size:10px;font-weight:600;color:#0D1B2A;margin:4px 0 2px">${esc(sig.nom)}</div><div style="font-size:9px;color:#6B7280;margin-bottom:3px">${esc(titre)}</div><div style="font-size:9px;color:#6B7280">${esc(sig.email)}</div><div style="font-size:9px;color:#6B7280;margin-bottom:16px">${esc(sig.tel)}</div><div class="si"></div>`:`<div class="sn">&nbsp;</div><div class="si"></div>`}`;})()}</div>
-  </div>
+  </div></div>
   <div class="cgv-block">
     <div class="lt">${t('cgvTitle')}</div>
     ${isEn?`<p style="font-size:10px;color:var(--sg);font-style:italic;margin-top:4px">[English version of CGPLV to be inserted]</p>`:`<div class="cgv-hdr">
