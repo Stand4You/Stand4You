@@ -501,17 +501,21 @@ function parseCGVText(raw){
 async function loadDocuments(){
   try{
     const recs=await atFetchAll(TBL_DOCS);
-    console.log('[loadDocuments] total records:',recs.length,recs.map(r=>({Nature:r.fields.Nature,Langue:r.fields.Langue,hasContenu:!!r.fields.Contenu,hasFichier:!!(r.fields.Fichier&&r.fields.Fichier.length)})));
+    console.log('[loadDocuments] total records:',recs.length,recs.map(r=>({Nature:r.fields.Nature,Langue:r.fields.Langue,hasContenu:!!(r.fields.Contenu||r.fields.Content),hasFichier:!!(r.fields.Fichier&&r.fields.Fichier.length),hasDocument:!!(r.fields.Document&&r.fields.Document.length)})));
     const cgvRecs=recs
-      .filter(r=>r.fields.Nature==='CGV'&&(r.fields.Contenu||(r.fields.Fichier&&r.fields.Fichier.length)))
+      .filter(r=>{const nat=(r.fields.Nature||'').toUpperCase();return nat.includes('CGV')||nat.includes('CGPLV');})
       .sort((a,b)=>new Date(b.fields.Date_Creation||0)-new Date(a.fields.Date_Creation||0));
+    console.log('[loadDocuments] CGV records:',cgvRecs.length,cgvRecs.map(r=>({Langue:r.fields.Langue,Nature:r.fields.Nature})));
     ['fr','en'].forEach(lang=>{
       const rec=cgvRecs.find(r=>(r.fields.Langue||'').toLowerCase()===lang);
       if(rec){
-        if(rec.fields.Contenu)CGV[lang]=parseCGVText(rec.fields.Contenu);
-        const fichiers=rec.fields.Fichier;
+        const contenu=rec.fields.Contenu||rec.fields.Content||'';
+        if(contenu)CGV[lang]=parseCGVText(contenu);
+        const fichiers=rec.fields.Fichier||rec.fields.Document||[];
         if(fichiers&&fichiers.length)CGV_PDF[lang]=fichiers[0].url;
         console.log('[loadDocuments] CGV',lang,'text=',CGV[lang].length,'chars, pdf=',CGV_PDF[lang]||'none');
+      }else{
+        console.log('[loadDocuments] no CGV record for lang=',lang,'— available Langue values:',cgvRecs.map(r=>r.fields.Langue));
       }
     });
   }catch(e){console.warn('[loadDocuments] échec:',e.message);}
@@ -703,12 +707,12 @@ async function atSave(){
       'Solde_Total':Math.round(solde*100)/100,
       'Validite_Jours':parseInt(st.ctx.validite)||7,
       'Statut':statMap[st.status]||'Brouillon',
-      'Regime_TVA':st.tvaMode,
       ...(expiryDate?{'Date_Expiration':expiryDate}:{})
     };
-    /* Champs étendus : tolèrent un rejet Airtable silencieusement */
+    /* Champs étendus : tolèrent un rejet Airtable silencieusement (single-selects dont les options peuvent manquer) */
     const extFields={
       'Langue':st.lang,
+      'Regime_TVA':st.tvaMode,
       ...(st.ctx.salonSurface&&st.type!=='s'&&st.type!=='m'?{'Surface_(m2)':parseFloat(st.ctx.salonSurface)}:{})
     };
     /* Essai 1 : tout en une fois */
@@ -1337,7 +1341,7 @@ function buildPDF(){
         h+=gl.map(l=>`<tr class="ir"><td></td><td class="ci" colspan="2">• ${esc(effName(l))}${l.desc?`<span class="id">${esc(l.desc)}</span>`:''}</td></tr>`).join('');
         const ac=ph.off?`<td class="ca">${v>0?`<span style="text-decoration:line-through;opacity:.4">${fmt(v)}</span>`:''}&nbsp;<span class="bo">${t('offBadge')}</span></td>`:`<td class="ca">${v>0?fmt(v):'—'}</td>`;
         h+=`<tr class="par"><td></td><td class="cpl">${t('mHT')} ${lbl}</td>${ac}</tr>`;
-      }return `<tbody style="break-inside:avoid;page-break-inside:avoid">`+h+`</tbody>`;
+      }return `<tbody>`+h+`</tbody>`;
     }
     if(s.perLine){
       const stot=s.lines.reduce((x,l)=>x+lineAmt(l),0);
@@ -1347,12 +1351,12 @@ function buildPDF(){
         if(l.storageType){const tot=lineAmt(l);amtStr=l.lineOff?`<span class="bo">${t('offBadge')}</span>`:fmt(tot)+`&nbsp;<span style="font-size:9px;color:#9ca3af">(${l.qty||0}\u00a0×\u00a0${fmt(parseFloat(l.uprice)||0)}\u00a0/\u00a0${l.period})</span>`;}
         else{amtStr=l.lineOff?`<span style="text-decoration:line-through;opacity:.4">${fmt(l.lineHt||0)}</span>&nbsp;<span class="bo">${t('offBadge')}</span>`:fmt(l.lineHt||0);}
         return`<tr class="ir"><td></td><td class="ci">• ${esc(effName(l))}${l.desc?`<span class="id">${esc(l.desc)}</span>`:''}</td><td class="ca" style="font-size:10px">${amtStr}</td></tr>`;
-      }).join('');return `<tbody style="break-inside:avoid;page-break-inside:avoid">`+h+`</tbody>`;
+      }).join('');return `<tbody>`+h+`</tbody>`;
     }
     const v=parseFloat(s.ht)||0;
     const ac=s.off?`<td class="ca">${v>0?`<span style="text-decoration:line-through;opacity:.4">${fmt(v)}</span>`:''}&nbsp;<span class="bo">${t('offBadge')}</span></td>`:`<td class="ca">${v>0?fmt(v):'—'}</td>`;
     const lr=s.lines.filter(l=>effName(l)).map(l=>`<tr class="ir"><td></td><td class="ci">• ${esc(effName(l))}${l.desc?`<span class="id">${esc(l.desc)}</span>`:''}</td><td></td></tr>`).join('');
-    return`<tbody style="break-inside:avoid;page-break-inside:avoid"><tr class="sr"><td class="cn">${idx+1}</td><td class="cm">${esc(nm)}</td>${ac}</tr>${lr}</tbody>`;
+    return`<tbody><tr class="sr"><td class="cn">${idx+1}</td><td class="cm">${esc(nm)}</td>${ac}</tr>${lr}</tbody>`;
   }).join('');
 
   const lblock=(title,raw)=>`<div class="ls"><div class="lt">${title}</div><div class="lb">${(raw||'').split('\n\n').map(p=>`<p class="lp">${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
