@@ -200,6 +200,7 @@ const TBL_EVNT        = 'tblKA36jWxmadAKgM';
 const TBL_RUBRIQUES   = 'tblkk6r4KHjA7Qxsp';
 const TBL_PRESTATIONS = 'tblmWNl2DQhpZhctW';
 const TBL_PROJET      = 'tbl8mOCTVuETbsJaK';
+const TBL_DOCS        = 'tbl7al8vppMhiKnhQ';
 
 /* ── Webhook Make (optionnel — branché en étape 4) ── */
 const MAKE_WEBHOOK = 'COLLER_URL_WEBHOOK_MAKE_ICI_OU_LAISSER_VIDE';
@@ -280,6 +281,7 @@ function t(k){return(TR[st.lang]&&TR[st.lang][k]!=null?TR[st.lang][k]:(TR.fr[k]|
 
 let CAT_TR={};  // rempli dynamiquement depuis Airtable (TBL_PRESTATIONS)
 let SEC_TR={};  // rempli dynamiquement depuis Airtable (TBL_RUBRIQUES)
+let CGV={fr:'',en:''};  // Conditions Générales chargées depuis Airtable (TBL_DOCS)
 function dc(c){return st.lang==='en'&&CAT_TR[c]?CAT_TR[c]:c;}
 function ds(n){return st.lang==='en'&&SEC_TR[n]?SEC_TR[n]:n;}
 
@@ -469,6 +471,42 @@ function buildCatalogue(rubRecs,presRecs){
 }
 
 /* Recharge client + événement + projet depuis Airtable — appelé à chaque load brouillon */
+function parseCGVText(raw){
+  if(!raw)return'';
+  const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
+  let html='',i=0;
+  // Sauter le préambule jusqu'au premier article
+  while(i<lines.length&&!/^Article\s+\d+/i.test(lines[i]))i++;
+  while(i<lines.length){
+    if(/^Article\s+\d+/i.test(lines[i])){
+      const title=lines[i++];
+      const body=[];
+      while(i<lines.length&&!/^Article\s+\d+/i.test(lines[i]))body.push(lines[i++]);
+      html+=`<div class="cgv-art"><div class="cgv-art-title">${esc(title)}</div>`
+           +`<div class="cgv-art-body">${body.filter(l=>l.length>3).map(p=>`<p class="lp">${esc(p)}</p>`).join('')}</div></div>`;
+    }else{
+      // Texte hors article = pied de page
+      const foot=[];
+      while(i<lines.length)foot.push(lines[i++]);
+      const ft=foot.filter(l=>l.length>3).join(' ');
+      if(ft)html+=`<div class="cgv-footer">${esc(ft)}</div>`;
+      break;
+    }
+  }
+  return html;
+}
+async function loadDocuments(){
+  try{
+    const recs=await atFetchAll(TBL_DOCS);
+    const cgvRecs=recs
+      .filter(r=>r.fields.Nature==='CGV'&&r.fields.Contenu)
+      .sort((a,b)=>new Date(b.fields.Date_Creation||0)-new Date(a.fields.Date_Creation||0));
+    ['fr','en'].forEach(lang=>{
+      const rec=cgvRecs.find(r=>(r.fields.Langue||'').toLowerCase()===lang);
+      if(rec){CGV[lang]=parseCGVText(rec.fields.Contenu);console.log('[loadDocuments] CGV',lang,'chargée');}
+    });
+  }catch(e){console.warn('[loadDocuments] échec (CGV intégrées utilisées):',e.message);}
+}
 async function atLoadLinked(devis){
   if(devis.CLIENT_Nom&&devis.CLIENT_Nom.length){
     const clientRecId=Array.isArray(devis.CLIENT_Nom)?devis.CLIENT_Nom[0]:devis.CLIENT_Nom;
@@ -1433,7 +1471,7 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
   </div>
   <div class="cgv-block">
     <div class="lt">${t('cgvTitle')}</div>
-    ${isEn?`<p style="font-size:10px;color:var(--sg);font-style:italic;margin-top:4px">[English version of CGPLV to be inserted]</p>`:`<div class="cgv-hdr">
+    ${(()=>{if(CGV[st.lang]){const ch=isEn?'General Terms and Conditions of Services, Rental and Sales':'Conditions Générales de Prestations, Location et Vente';const cs=isEn?'Stand 4 You · Version 1.0 · Effective as of April 2026':'Stand 4 You · Version 1.0 · En vigueur à compter d’avril 2026';return `<div class="cgv-hdr"><span class="cgv-title">${ch}</span><span class="cgv-sub">${cs}</span></div>${CGV[st.lang]}`;}return isEn?`<p style="font-size:10px;color:var(--sg);font-style:italic;margin-top:4px">[English version of CGPLV to be inserted]</p>`:`<div class="cgv-hdr">
 <span class="cgv-title">Conditions Générales de Prestations, Location et Vente</span>
 <span class="cgv-sub">Stand 4 You · Version 1.0 · En vigueur à compter d'avril 2026</span>
 </div>
@@ -1448,7 +1486,7 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
 <div class="cgv-art"><div class="cgv-art-title">Article 9 — Confidentialité et données personnelles</div><div class="cgv-art-body"><p>Les parties s'engagent mutuellement à traiter comme strictement confidentielles toutes les informations, documents, données techniques, commerciales ou stratégiques échangés dans le cadre de leur relation, et à ne pas les divulguer à des tiers sans accord écrit préalable. Cet engagement de confidentialité s'applique pendant toute la durée de la relation contractuelle et durant trois (3) ans après son terme.</p><p>Les données personnelles collectées dans le cadre de la relation commerciale (coordonnées du Client, de son représentant légal et de ses contacts) sont traitées par S4U en qualité de responsable de traitement, conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés. Ces données sont utilisées aux seules fins d'exécution du contrat, de gestion de la relation client et, avec le consentement du Client, de prospection commerciale. Elles ne sont pas cédées à des tiers. Le Client dispose d'un droit d'accès, de rectification, d'effacement et de portabilité de ses données, qu'il peut exercer à l'adresse contact@stand4you.com.</p></div></div>
 <div class="cgv-art"><div class="cgv-art-title">Article 10 — Résiliation, droit applicable et dispositions finales</div><div class="cgv-art-body"><p>En cas de manquement grave d'une partie à ses obligations contractuelles, non régularisé dans un délai de quinze (15) jours suivant mise en demeure par lettre recommandée avec avis de réception, l'autre partie pourra résilier le contrat de plein droit, sans préjudice de tout dommage et intérêt.</p><p>Les présentes CGPLV sont régies par le droit français. Tout litige relatif à leur interprétation, leur exécution ou leur validité sera soumis, à défaut de règlement amiable, à la compétence exclusive du Tribunal de Commerce de Nice, même en cas de pluralité de défendeurs ou d'appel en garantie. Le Client professionnel renonce expressément à se prévaloir de la compétence de toute autre juridiction.</p></div></div>
 <div class="cgv-footer">Document confidentiel — propriété de Stand 4 You. Reproduction interdite sans autorisation expresse.</div>
-`}
+`;}})()}
   </div>
   <div class="pb np">
     <button class="pbt" onclick="window.print()">🖨️\u00a0\u00a0${isEn?'Print / Save as PDF':'Imprimer / Enregistrer en PDF'}</button>
@@ -1488,7 +1526,7 @@ function printD(){
   const recId=params.get('id');
   const typeParam=params.get('type');
   if(typeParam&&['n','r','s','m'].includes(typeParam))st.type=typeParam;
-  await loadCatalogue();
+  await Promise.all([loadCatalogue(),loadDocuments()]);
   if(recId&&recId.startsWith('rec')){
     /* Sections viennent exclusivement d'atLoad (JSON ou champs Airtable) */
     render();
