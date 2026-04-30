@@ -1425,8 +1425,8 @@ footer.rf{position:fixed;bottom:0;left:0;right:0;height:12mm;display:flex;align-
 .info-group p{font-size:10px;color:var(--navy);line-height:1.6}
 .sub{font-size:10px;font-style:italic;color:var(--sg);margin-bottom:12px}
 table.t{width:100%;border-collapse:collapse;margin-bottom:14px}
-table.t thead th{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--sg);padding:4px 8px;border-bottom:1px solid var(--navy);text-align:left}
-table.t thead th:last-child{text-align:right;width:120px}
+tr.t-hdr td{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--sg);padding:4px 8px;border-bottom:1px solid var(--navy);text-align:left}
+tr.t-hdr td:last-child{text-align:right;width:120px}
 tr.sr td{background:rgba(13,27,42,.03);border-top:0.5px solid rgba(13,27,42,.1);padding:6px 8px;font-size:12px;font-weight:500;break-inside:avoid;break-before:avoid}
 td.cn{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);width:22px;font-size:13px}
 td.ca{text-align:right;white-space:nowrap}
@@ -1499,7 +1499,7 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
     </div>
   </div>`:''}
 
-  <table class="t"><thead><tr><th></th><th>${t('desig')}</th><th style="text-align:right">${t('mHTcol')}</th></tr></thead>${rows}</table>
+  <table class="t"><tbody><tr class="t-hdr"><td></td><td>${t('desig')}</td><td style="text-align:right">${t('mHTcol')}</td></tr></tbody>${rows}</table>
   <div class="tw"><div class="ti"><table>${tRows}</table></div></div>
   ${lblock(t('nonInclusTitle'),legalTxt('nonInclus'))}
   ${lblock(t('condTitle'),legalTxt('conditions'))}
