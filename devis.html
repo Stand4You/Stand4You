@@ -254,7 +254,7 @@ fr:{
   readonlyNote:'Ce devis est verrouillé (statut : ',readonlyNote2:'). Générez le PDF ou modifiez le statut pour rouvrir.',
   atLoading:'Chargement depuis Airtable…',atLoaded:'Données chargées depuis Airtable',atError:'Erreur Airtable : ',atSaving:'Sauvegarde…',atSaved:'Sauvegardé dans Airtable',atSavedLS:'Sauvegardé en local',
   accepteWebhook:'Devis accepté — envoi vers Pennylane…',
-  fraisGestionTitle:'Frais de gestion',fgToggle:'+ Ajouter des frais de gestion',fgNote:'* Coût réel + Frais de gestion — montant non inclus dans le total HT',
+  fraisGestionTitle:'Gestion & Approvisionnement pour le compte du client',fgToggle:'+ Ajouter Gestion & Approvisionnement',fgNote:'* hors Gestion & Approvisionnement pour le compte du client',
 },
 en:{
   typeDevis:'Quote type',tabN:'New stand',tabR:'Re-installation',tabS:'Storage',tabM:'Furniture',
@@ -289,7 +289,7 @@ en:{
   readonlyNote:'This quote is locked (status: ',readonlyNote2:'). Generate PDF or change status to reopen.',
   atLoading:'Loading from Airtable…',atLoaded:'Data loaded from Airtable',atError:'Airtable error: ',atSaving:'Saving…',atSaved:'Saved to Airtable',atSavedLS:'Saved locally',
   accepteWebhook:'Quote accepted — sending to Pennylane…',
-  fraisGestionTitle:'Management fees',fgToggle:'+ Add management fees',fgNote:'* Actual cost + Management fees — amount not included in the total',
+  fraisGestionTitle:'Management & Procurement on behalf of the client',fgToggle:'+ Add Management & Procurement',fgNote:'* excl. Management & Procurement on behalf of the client',
 }};
 function t(k){return(TR[st.lang]&&TR[st.lang][k]!=null?TR[st.lang][k]:(TR.fr[k]||k));}
 
@@ -306,13 +306,13 @@ fr:{
 nonInclus:"• Conservation d'éléments constitutifs du stand pour une location ultérieure\n• Commandes des fluides (téléphone, eau, lignes spécialisées Internet, etc.)\n• Commandes à l'organisateur (éclairage, élingues, pose enseigne, etc.)\n• Panneaux, textes et photos non décrits dans cette offre\n• Matériel informatique et audio-visuel non décrits dans cette offre\n• Transport, manutention et mise en place de vos produits et de vos commandes\n• Plus généralement, tous les postes non cités au présent devis",
 conditions:"Acompte : L'acompte est exigible à la commande. Une facture d'acompte sera émise à la signature du présent devis. Le règlement de la facture d'acompte conditionne le lancement en production de l'ensemble des prestations. À défaut de réception du paiement à réception, le démarrage des prestations sera reporté d'autant, sans que la responsabilité de Stand 4 You ne puisse être engagée quant aux éventuels impacts sur le planning ou la disponibilité des ressources.\n\nSolde : Le solde est exigible au plus tard 2 jours ouvrés avant le début du montage du stand. Une facture de solde sera émise en amont de cette échéance. À défaut de réception du paiement à réception, Stand 4 You se réserve le droit de suspendre ou de ne pas réaliser les prestations, sans que cela puisse donner lieu à une quelconque indemnité.\n\nReports ou annulations : Les conditions applicables en cas de report ou d'annulation de la commande ou de l'événement sont définies dans les Conditions Générales de Prestations, Location et Vente (CGPLV), acceptées par le client.\n\nPénalités et escompte : Tout retard de paiement entraîne l'application de pénalités de retard et d'une indemnité forfaitaire légale, conformément aux dispositions des CGPLV. Aucun escompte pour règlement anticipé n'est accordé.",
 propriete:"Les plans, études et créations restent la propriété intellectuelle de Stand 4 You. Aucune cession de droits n'est incluse sauf mention contraire au présent devis.",
-fraisGestion:"Frais de gestion\n• En cas de gestion d'achat ou de service de location, stockage, transport ou livraison assurée pour le compte du client, Stand 4 You intervient en qualité de coordinateur avec une responsabilité limitée aux diligences normales de gestion et de suivi de commande dans le cadre d'une obligation de moyen.\n• Les prestataires et transporteurs sélectionnés demeurent seuls responsables de l'exécution de leurs prestations. En conséquence, la responsabilité de Stand 4 You ne saurait être engagée en cas de retards, défauts d'exécution, pertes, avaries ou impossibilité de livraison imputables à ces tiers.\n• Les achats et prestations réalisés pour le compte du client font l'objet d'une refacturation à l'euro près sur la base des dépenses réellement engagées.\n• A ces montants s'ajoutent des frais de gestion et de coordination fixés à 20% des montants HT engagés."
+fraisGestion:"• En cas de gestion d'achat ou de service de location, stockage, transport ou livraison assurée pour le compte du client, Stand 4 You intervient en qualité de coordinateur avec une responsabilité limitée aux diligences normales de gestion et de suivi de commande dans le cadre d'une obligation de moyen.\n• Les prestataires et transporteurs sélectionnés demeurent seuls responsables de l'exécution de leurs prestations. En conséquence, la responsabilité de Stand 4 You ne saurait être engagée en cas de retards, défauts d'exécution, pertes, avaries ou impossibilité de livraison imputables à ces tiers.\n• Les achats et prestations réalisés pour le compte du client font l'objet d'une refacturation à l'euro près sur la base des dépenses réellement engagées.\n• A ces montants s'ajoutent des frais de gestion et de coordination fixés à 20% des montants HT engagés."
 },
 en:{
 nonInclus:"• Storage of stand components for future rental\n• Fluid connections (telephone, water, dedicated Internet lines, etc.)\n• Organiser orders (lighting, slings, sign installation, etc.)\n• Panels, text and photos not described in this offer\n• IT and audiovisual equipment not described in this offer\n• Transport, handling and installation of your products and orders\n• More generally, all items not listed in this quotation",
 conditions:"Deposit: The deposit is due upon ordering. A deposit invoice will be issued upon signing this quotation. Payment of the deposit invoice conditions the start of production. In the absence of payment upon receipt, the start of services will be delayed accordingly, without Stand 4 You's liability being engaged.\n\nBalance: The balance is due no later than 2 working days before the start of stand assembly. In the absence of payment upon receipt, Stand 4 You reserves the right to suspend or not carry out the services, without giving rise to any compensation.\n\nPostponements or cancellations: The conditions applicable in the event of postponement or cancellation of the order or the event are defined in the General Terms and Conditions of Service and Stand Rental (GTCSR), accepted by the client.\n\nPenalties and discount: Any late payment will result in late payment penalties and a statutory flat-rate indemnity, in accordance with the GTCSR. No discount is granted for early payment.",
 propriete:"Plans, studies and creative works remain the intellectual property of Stand 4 You. No transfer of rights is included unless otherwise stated in this quotation.",
-fraisGestion:"Management fees\n• When managing purchases or services of rental, storage, transport or delivery on behalf of the client, Stand 4 You acts as coordinator with responsibility limited to the normal diligence of order management and follow-up within the framework of a best-efforts obligation.\n• The selected service providers and carriers remain solely responsible for the performance of their services. Accordingly, Stand 4 You's liability cannot be engaged in the event of delays, defects in performance, loss, damage or impossibility of delivery attributable to such third parties.\n• Purchases and services carried out on behalf of the client are recharged on a cost-plus basis, with actual expenditure invoiced at exact cost.\n• Management and coordination fees of 20% of the net amounts incurred are added to these amounts."
+fraisGestion:"• When managing purchases or services of rental, storage, transport or delivery on behalf of the client, Stand 4 You acts as coordinator with responsibility limited to the normal diligence of order management and follow-up within the framework of a best-efforts obligation.\n• The selected service providers and carriers remain solely responsible for the performance of their services. Accordingly, Stand 4 You's liability cannot be engaged in the event of delays, defects in performance, loss, damage or impossibility of delivery attributable to such third parties.\n• Purchases and services carried out on behalf of the client are recharged on a cost-plus basis, with actual expenditure invoiced at exact cost.\n• Management and coordination fees of 20% of the net amounts incurred are added to these amounts."
 }};
 
 const LEGAL_DEF_STOCKAGE={
@@ -724,6 +724,7 @@ async function atSave(){
       'Acompte_Total':Math.round(acompte*100)/100,
       'Solde_Total':Math.round(solde*100)/100,
       'Validite_Jours':parseInt(st.ctx.validite)||7,
+      'Frais_Gestion':!!st.fraisGestion,
       ...(expiryDate?{'Date_Expiration':expiryDate}:{})
     };
     /* softFields : champs single-select — envoyés avec typecast:true pour forcer la création de l'option */
@@ -1094,7 +1095,7 @@ function addSelHTML(){
   const opts=SC.map((c,i)=>({ci:i,n:c.name,m:c._modes?c._modes[st.type]:'Optionnel'}))
     .filter(({ci,m})=>!used.has(ci)&&m!=='Masqué')
     .map(({ci,n})=>`<option value="${ci}">${esc(ds(n))}</option>`).join('');
-  const fgRow=st.fraisGestion?'':`<label class="fg-toggle"><input type="checkbox" onchange="togFG(this.checked)"><span>${t('fgToggle')}</span></label>`;
+  const fgRow=`<label class="fg-toggle"><input type="checkbox" ${st.fraisGestion?'checked':''} onchange="togFG(this.checked)"><span>${t('fgToggle')}</span></label>`;
   return`<select class="add-sel" onchange="aSec(this.value);this.value=''"><option value="">${t('addRub')}</option>${opts}<option value="-1">${t('customRub')}</option></select>${fgRow}`;
 }
 function fraisGestionSectionHTML(frozen){
@@ -1401,13 +1402,15 @@ function buildPDF(){
   }).join('');
 
   const lblock=(title,raw)=>`<div class="ls"><div class="lt">${title}</div><div class="lb">${(raw||'').split('\n\n').map(p=>`<p class="lp">${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
-  const fgRows=st.fraisGestion?`<tbody><tr class="fg-sr"><td class="fg-cn">★</td><td class="fg-cm">${t('fraisGestionTitle')}${st.fraisGestionDesc?`<span class="id">${esc(st.fraisGestionDesc)}</span>`:''}</td><td class="fg-ca">*</td></tr></tbody>`:'';
+  const fgAmtStr=isEn?'Actual cost + Mgmt fees':'Coût réel + Frais de gestion';
+  const fgRows=st.fraisGestion?`<tbody><tr class="fg-sr"><td class="fg-cn">★</td><td class="fg-cm">${t('fraisGestionTitle')}${st.fraisGestionDesc?`<span class="id">${esc(st.fraisGestionDesc)}</span>`:''}</td><td class="fg-ca">${fgAmtStr}</td></tr></tbody>`:'';
+  const fgStar=st.fraisGestion?'<span style="font-size:8px;vertical-align:super;color:var(--gold);margin-left:1px">*</span>':'';
 
   const tRows=`${!hr
-    ?`<tr class="rm"><td class="tl">${t('totHT')}</td><td class="tv">${fmt(ht)}</td></tr>`
+    ?`<tr class="rm"><td class="tl">${t('totHT')}${fgStar}</td><td class="tv">${fmt(ht)}</td></tr>`
     :`<tr><td class="tl">${t('totHTav')}</td><td class="tv">${fmt(ht)}</td></tr>
       <tr><td class="tl">${t('remise')}${st.rt==='%'?` (${st.remise}\u00a0%)`:''}]</td><td class="tv">− ${fmt(rmt)}</td></tr>
-      <tr class="ra"><td class="tl">${t('totHTap')}</td><td class="tv">${fmt(ap)}</td></tr>`}
+      <tr class="ra"><td class="tl">${t('totHTap')}${fgStar}</td><td class="tv">${fmt(ap)}</td></tr>`}
   ${isFR?`<tr><td class="tl">${t('tvaFR')}</td><td class="tv">${fmt(tva)}</td></tr><tr class="rt"><td class="tl">${t('totTTC')}</td><td class="tv">${fmt(ttc)}</td></tr>`
         :(st.tvaMode==='eu'||st.tvaMode==='fr_na'?`${ment?`<tr><td colspan="2" style="font-style:italic;font-size:9px;color:#6B7280;padding-top:3px;line-height:1.4">${ment}</td></tr>`:''}`:`<tr class="${!hr?'rt':'ra'}"><td class="tl">${t('totHT')}</td><td class="tv">${fmt(ap)}</td></tr>${ment?`<tr><td colspan="2" style="font-style:italic;font-size:9px;color:#6B7280;padding-top:3px;line-height:1.4">${ment}</td></tr>`:''}`)}
   ${pct>0&&st.type!=='s'?`<tr class="rs"><td class="tl">${t('acompte')} (${pct}\u00a0%)</td><td class="tv">${fmt(acompte)}</td></tr><tr><td class="tl">${t('solde')}</td><td class="tv">${fmt(solde)}</td></tr>`:''}
