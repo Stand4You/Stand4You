@@ -228,9 +228,10 @@ fr:{
   totHTav:'Total HT avant remise',totHT:'Total HT',remise:'Remise',
   totHTap:'Total HT après remise',totTTC:'Total TTC',
   acompte:'Acompte à la commande',solde:'Solde avant montage',
-  tvaFR:'TVA 20\u00a0%',tvaEU:'Autoliquidation TVA',tvaEXP:'TVA non applicable',
-  mentEU:'Autoliquidation\u00a0– TVA due par le preneur\u00a0– article\u00a044 de la directive 2006/112/CE et article\u00a0283-2 du CGI',
-  mentEXP:'TVA non applicable\u00a0– art.\u00a0259 CGI',
+  tvaFR:'TVA 20\u00a0%',tvaEU:'Autoliquidation TVA',tvaEXP:'TVA non applicable',tvaEU_HT:'Client UE sans N° TVA',
+  selFR:'Client France',selEU:'Client UE avec N° TVA',selEXP:'Client hors UE',
+  mentEU:'Autoliquidation\u00a0– TVA due par le preneur\u00a0– article\u00a0283-2 du CGI',
+  mentEXP:'Hors champ de la TVA française\u00a0– article\u00a0259 du CGI',
   btnEN:'🇬🇧\u00a0Traduire en anglais',btnFR:'🇫🇷\u00a0Revenir au français',
   btnPDF:'Générer le devis PDF',printTip:'💡 Désactivez «\u00a0En-têtes et pieds de page\u00a0» dans la boîte de dialogue d\'impression.',
   addRub:'+ Ajouter une rubrique…',customRub:'— Rubrique personnalisée —',
@@ -263,9 +264,10 @@ en:{
   totHTav:'Total excl. VAT before discount',totHT:'Total excl. VAT',remise:'Discount',
   totHTap:'Total excl. VAT after discount',totTTC:'Total incl. VAT',
   acompte:'Deposit upon signing',solde:'Balance before assembly',
-  tvaFR:'VAT 20\u00a0%',tvaEU:'Reverse charge VAT',tvaEXP:'VAT not applicable',
-  mentEU:'Reverse charge\u00a0– VAT due by the recipient\u00a0– Art.\u00a044 EU Dir.\u00a02006/112/EC\u00a0& Art.\u00a0283-2 French Tax Code',
-  mentEXP:'VAT not applicable\u00a0– Art.\u00a0259 French Tax Code',
+  tvaFR:'VAT 20\u00a0%',tvaEU:'Reverse charge VAT',tvaEXP:'VAT not applicable',tvaEU_HT:'EU client (no VAT no.)',
+  selFR:'French client',selEU:'EU client (VAT no.)',selEXP:'Non-EU client',
+  mentEU:'Reverse charge\u00a0– VAT due by recipient\u00a0– Art.\u00a0283-2 French Tax Code',
+  mentEXP:'Outside scope of French VAT\u00a0– Art.\u00a0259 French Tax Code',
   btnEN:'🇫🇷\u00a0Revenir au français',btnFR:'🇫🇷\u00a0Revenir au français',
   btnPDF:'Generate PDF quotation',printTip:'💡 In print dialog: disable «Headers and footers».',
   addRub:'+ Add a section…',customRub:'— Custom section —',
@@ -661,8 +663,11 @@ async function atLoad(recordId){
     /* Champs de première création : éditables et synchronisés sur save */
     if(devis['Surface_(m2)'])st.ctx.salonSurface=String(devis['Surface_(m2)']);
     if(devis.Validite_Jours)st.ctx.validite=String(devis.Validite_Jours);
-    const rawRegime=(devis.Regime_TVA||'').toLowerCase();
-    if(rawRegime){st.tvaMode=rawRegime==='eu'?'eu':rawRegime==='export'?'export':'fr';}
+    const rawRegime=devis.Regime_TVA||'';
+    if(rawRegime){
+      const rmap={'UE (autoliquidation)':'eu','UE (TVA)':'eu_ht','Hors UE (hors champ)':'export','Export hors UE':'export','France (TVA)':'fr','France (franchise TVA)':'fr_na'};
+      st.tvaMode=rmap[rawRegime]||'fr';
+    }
     st.ctx.cliNature=st.tvaMode;
     /* Valeurs par défaut création */
     st.acp='70';
@@ -728,7 +733,7 @@ async function atSave(){
       ...(expiryDate?{'Date_Expiration':expiryDate}:{})
     };
     /* softFields : champs single-select — envoyés avec typecast:true pour forcer la création de l'option */
-    const tvaMap={'fr':'France (TVA)','fr_na':'France (franchise TVA)','eu':'UE (autoliquidation)','export':'Export hors UE'};
+    const tvaMap={'fr':'France (TVA)','fr_na':'France (franchise TVA)','eu':'UE (autoliquidation)','eu_ht':'UE (TVA)','export':'Hors UE (hors champ)'};
     const softFields={
       'Statut':statMap[st.status]||'Brouillon',
       'Langue':st.lang,
@@ -828,7 +833,7 @@ function calc(){
   const r=parseFloat(st.remise)||0;
   const rmt=st.rt==='%'?ht*r/100:Math.min(r,ht);
   const ap=Math.max(0,ht-rmt);
-  const isFR=st.tvaMode==='fr';
+  const isFR=st.tvaMode==='fr'||st.tvaMode==='eu_ht';
   const tva=isFR?ap*0.2:0;
   const ttc=isFR?ap*1.2:ap;
   const pct=Math.max(0,Math.min(100,parseFloat(st.acp)||0));
@@ -858,7 +863,7 @@ function updT(){
   sv('vht-s',fmt(ht));sv('vht-av',fmt(ht));
   sh('row-ht-s',!hr);sh('row-ht-av',hr);sh('row-ht-ap',hr);
   sv('vap',fmt(ap));sv('vrmt','− '+fmt(rmt));
-  if(st.tvaMode==='fr'){sv('vtva',fmt(tva));sv('vttc',fmt(ttc));}
+  if(st.tvaMode==='fr'||st.tvaMode==='eu_ht'){sv('vtva',fmt(tva));sv('vttc',fmt(ttc));}
   sv('vacp',fmt(acompte));sv('vsol',fmt(solde));
   scheduleSave();
 }
@@ -1119,11 +1124,11 @@ function fraisGestionSectionHTML(frozen){
 function totHTML(){
   const{ht,rmt,ap,tva,ttc,acompte,solde}=calc();
   const hr=(parseFloat(st.remise)||0)>0;
-  const isFR=st.tvaMode==='fr';
+  const isFR=st.tvaMode==='fr'||st.tvaMode==='eu_ht';
   const ment=st.tvaMode==='eu'?t('mentEU'):st.tvaMode==='export'?t('mentEXP'):'';
   const pct=parseFloat(st.acp)||0;
   return`<div class="totals">
-    <div id="row-ht-s" class="trow htmain" style="${hr?'display:none':''}"><span class="lbl">${t('totHT')}</span><span id="vht-s">${fmt(ht)}</span></div>
+    <div id="row-ht-s" class="trow htmain" style="${hr?'display:none':''}"><span class="lbl">${t('totHT')}${st.fraisGestion?'*':''}</span><span id="vht-s">${fmt(ht)}</span></div>
     <div id="row-ht-av" class="trow" style="${hr?'':'display:none'}"><span class="lbl">${t('totHTav')}</span><span id="vht-av">${fmt(ht)}</span></div>
     <div class="trow trow-verify" style="margin-top:6px">
       <div style="display:flex;align-items:center;gap:8px">
@@ -1133,14 +1138,15 @@ function totHTML(){
         <button class="rtbtn" onclick="togRT()">${st.rt}</button>
       </div><span id="vrmt">− ${fmt(rmt)}</span>
     </div>
-    <div id="row-ht-ap" class="trow main" style="${hr?'':'display:none'}"><span class="lbl">${t('totHTap')}</span><span id="vap">${fmt(ap)}</span></div>
+    <div id="row-ht-ap" class="trow main" style="${hr?'':'display:none'}"><span class="lbl">${t('totHTap')}${st.fraisGestion?'*':''}</span><span id="vap">${fmt(ap)}</span></div>
     <div class="trow trow-verify" style="margin-top:6px;padding-top:8px">
       <div style="display:flex;align-items:center;gap:8px">
         <span class="verify-badge">${t('verifLbl')}</span>
         <select class="tva-sel" onchange="uTVA(this.value)">
-          <option value="fr"${st.tvaMode==='fr'?' selected':''}>${t('tvaFR')}</option>
-          <option value="eu"${st.tvaMode==='eu'?' selected':''}>${t('tvaEU')}</option>
-          <option value="export"${st.tvaMode==='export'?' selected':''}>${t('tvaEXP')}</option>
+          <option value="fr"${st.tvaMode==='fr'?' selected':''}>${t('selFR')}</option>
+          <option value="eu"${st.tvaMode==='eu'?' selected':''}>${t('selEU')}</option>
+          <option value="eu_ht"${st.tvaMode==='eu_ht'?' selected':''}>${t('tvaEU_HT')}</option>
+          <option value="export"${st.tvaMode==='export'?' selected':''}>${t('selEXP')}</option>
         </select>
       </div>
       ${isFR?`<span id="vtva">${fmt(tva)}</span>`:`<span class="tva-mention" id="vtva">${ment}</span>`}
@@ -1354,7 +1360,7 @@ const FT=`SAS Stand 4 You\u00a0· Capital social\u00a05\u00a0000\u00a0€\u00a0�
 function buildPDF(){
   const{ht,rmt,ap,tva,ttc,acompte,solde}=calc();
   const hr=(parseFloat(st.remise)||0)>0;
-  const isFR=st.tvaMode==='fr';
+  const isFR=st.tvaMode==='fr'||st.tvaMode==='eu_ht';
   const ment=st.tvaMode==='eu'?t('mentEU'):st.tvaMode==='export'?t('mentEXP'):'';
   const pct=parseFloat(st.acp)||0;
   const c=st.ctx;
@@ -1403,8 +1409,8 @@ function buildPDF(){
 
   const lblock=(title,raw)=>`<div class="ls"><div class="lt">${title}</div><div class="lb">${(raw||'').split('\n\n').map(p=>`<p class="lp">${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
   const fgAmtStr=isEn?'Actual cost + Mgmt fees':'Coût réel + Frais de gestion';
-  const fgRows=st.fraisGestion?`<tbody><tr class="fg-sr"><td class="fg-cn">★</td><td class="fg-cm">${t('fraisGestionTitle')}${st.fraisGestionDesc?`<span class="id">${esc(st.fraisGestionDesc)}</span>`:''}</td><td class="fg-ca">${fgAmtStr}</td></tr></tbody>`:'';
-  const fgStar=st.fraisGestion?'<span style="font-size:8px;vertical-align:super;color:var(--gold);margin-left:1px">*</span>':'';
+  const fgRows=st.fraisGestion?`<tbody><tr class="fg-sr"><td class="fg-cn">★</td><td class="fg-cm">${t('fraisGestionTitle')}${st.fraisGestionDesc?`<span class="id">${esc(st.fraisGestionDesc).replace(/\n/g,'<br>')}</span>`:''}</td><td class="fg-ca">${fgAmtStr}</td></tr></tbody>`:'';
+  const fgStar=st.fraisGestion?'*':'';
 
   const tRows=`${!hr
     ?`<tr class="rm"><td class="tl">${t('totHT')}${fgStar}</td><td class="tv">${fmt(ht)}</td></tr>`
@@ -1476,7 +1482,7 @@ body{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--navy);margin:0;
 footer.rf{position:fixed;bottom:0;left:0;right:0;height:10mm;display:flex;align-items:flex-start;justify-content:center;padding-top:3mm;border-top:0.5px solid rgba(13,27,42,.18);background:#fff;font-size:8.5px;color:#0D1B2A;text-align:center;line-height:1.4;z-index:100;}
 @page{@bottom-right{content:counter(page) " / " counter(pages);font-family:'DM Sans',sans-serif;font-size:8px;color:#9ca3af;margin-right:14mm;margin-bottom:4mm;}}
 .wrap{padding:0;}
-@media print{.pb,.np{display:none!important}.wrap{padding-bottom:8mm}table.t,table.t>tbody{break-inside:auto!important;page-break-inside:auto!important}}@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:""}}
+@media print{.pb,.np{display:none!important}.wrap{padding-bottom:16mm}table.t,table.t>tbody{break-inside:auto!important;page-break-inside:auto!important}}@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:""}}
 .doc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:10px 14px;background:#0D1B2A;border-radius:8px;border-bottom:none}
 .brand{display:flex;align-items:center;gap:10px}
 .brand-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#F5F5F0}
@@ -1599,7 +1605,7 @@ function checkAlerts(){
   if(!c.cliSociete)alerts.push(isEn?'Client name missing':'Nom du client manquant');
   if(!c.cliAdresse)alerts.push(isEn?'Client address missing':'Adresse client manquante');
   if(!c.cliContact)alerts.push(isEn?'Client contact missing':'Contact client manquant');
-  if(st.tvaMode!=='fr_na'&&st.tvaMode!=='export'&&!c.cliTVA)alerts.push(isEn?'VAT number missing':'N° de TVA client manquant');
+  if(st.tvaMode!=='fr_na'&&st.tvaMode!=='export'&&st.tvaMode!=='eu_ht'&&!c.cliTVA)alerts.push(isEn?'VAT number missing':'N° de TVA client manquant');
   if(!c.salonNom)alerts.push(isEn?'Show/project name missing':'Nom du salon / projet manquant');
   if(!c.salonLieu)alerts.push(isEn?'Venue missing':'Lieu du salon manquant');
   if(!c.salonDates)alerts.push(isEn?'Show dates missing':'Dates du salon manquantes');
