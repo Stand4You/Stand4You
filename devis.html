@@ -1427,11 +1427,11 @@ function buildPDF(){
 :root{--navy:#0D1B2A;--gold:#C9A96E;--sg:#6B7280}
 html,body{background:#fff}
 body{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--navy);margin:0;padding:0}
-@page{size:A4 portrait;margin:16mm 14mm 20mm;}
-footer.rf{position:fixed;bottom:0;left:0;right:0;height:8mm;display:flex;align-items:center;justify-content:center;padding:0 0mm;border-top:0.5px solid rgba(13,27,42,.12);background:#fff;font-size:6.5px;color:#9ca3af;text-align:center;line-height:1.4;z-index:100;}
+@page{size:A4 portrait;margin:16mm 14mm 16mm;}
+footer.rf{position:fixed;bottom:0;left:0;right:0;height:6mm;display:flex;align-items:center;justify-content:center;padding:0;border-top:0.5px solid rgba(13,27,42,.18);background:#fff;font-size:8.5px;color:#0D1B2A;text-align:center;line-height:1.4;z-index:100;}
 @page{@bottom-right{content:counter(page) " / " counter(pages);font-family:'DM Sans',sans-serif;font-size:8px;color:#9ca3af;margin-right:14mm;margin-bottom:4mm;}}
 .wrap{padding:0;}
-@media print{.pb,.np{display:none!important}.wrap{padding-bottom:10mm}table.t,table.t>tbody{break-inside:auto!important;page-break-inside:auto!important}}@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:""}}
+@media print{.pb,.np{display:none!important}.wrap{padding-bottom:8mm}table.t,table.t>tbody{break-inside:auto!important;page-break-inside:auto!important}}@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:""}}
 .doc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:10px 14px;background:#0D1B2A;border-radius:8px;border-bottom:none}
 .brand{display:flex;align-items:center;gap:10px}
 .brand-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#F5F5F0}
@@ -1445,18 +1445,18 @@ footer.rf{position:fixed;bottom:0;left:0;right:0;height:8mm;display:flex;align-i
 table.t{width:100%;border-collapse:collapse;margin-bottom:14px}
 tr.t-hdr td{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--sg);padding:4px 8px;border-bottom:1px solid var(--navy);text-align:left}
 tr.t-hdr td:last-child{text-align:right;width:120px}
-tr.sr{break-after:avoid;page-break-after:avoid}tr.sr td{background:rgba(13,27,42,.03);border-top:0.5px solid rgba(13,27,42,.1);padding:6px 8px;font-size:12px;font-weight:500;break-inside:avoid;break-before:avoid}
-td.cn{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);width:22px;font-size:13px}
+tr.sr{break-after:avoid;page-break-after:avoid}tr.sr td{background:rgba(13,27,42,.07);border-top:0.5px solid rgba(13,27,42,.1);padding:6px 8px;font-size:12px;font-weight:500;break-inside:avoid;break-before:avoid}
+td.cn{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:700;color:var(--gold);width:22px;font-size:14px}
 td.ca{text-align:right;white-space:nowrap}
 tr.ir td{padding:2px 8px 2px 24px;border-bottom:0.5px solid rgba(13,27,42,.04);break-inside:avoid}
 td.ci{font-size:11px;color:var(--sg)}
-span.id{display:block;font-style:italic;font-size:9px;color:#9ca3af;margin-top:1px}
-tr.pr td{padding:4px 8px 1px 14px;break-inside:avoid}
+span.id{display:block;font-style:italic;font-size:10px;color:#9ca3af;margin-top:1px}
+tr.pr td{background:rgba(13,27,42,.04);padding:4px 8px 1px 14px;break-inside:avoid}
 td.cph{font-size:9px;font-weight:600;letter-spacing:.07em;color:var(--gold);text-transform:uppercase}
-tr.par td{background:rgba(201,169,110,.06);border-top:0.5px dashed rgba(201,169,110,.3);padding:4px 8px;break-inside:avoid}
+tr.par td{background:rgba(201,169,110,.11);border-top:0.5px dashed rgba(201,169,110,.4);padding:4px 8px;break-inside:avoid}
 td.cpl{font-size:11px;color:var(--sg);font-style:italic;padding-left:14px}
 .bo{font-size:9px;color:var(--gold);border:0.5px solid rgba(201,169,110,.6);padding:1px 6px;border-radius:3px}
-.tw{display:flex;justify-content:flex-end;margin-bottom:16px;break-inside:avoid}
+.tw{display:flex;justify-content:flex-end;margin-bottom:28px;break-inside:avoid}
 .ti{width:290px}.ti table{width:100%;border-collapse:collapse}
 td.tl{color:var(--sg);padding:3px 4px;font-size:12px}
 td.tv{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding:3px 4px;font-size:12px}
