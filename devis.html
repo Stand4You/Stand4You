@@ -873,7 +873,7 @@ function setSavingDot(saving){
 
 /* ═══ UI: S4U HEADER ═══ */
 function headerHTML(){
-  const SVG_LOGO=`<span class="s4u-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 115.47" style="display:block;flex-shrink:0"><polygon points="50,57.74 0,28.87 50,0" fill="#EBE9E2"/><polygon points="50,57.74 50,0 100,28.87" fill="#B8965A"/><polygon points="50,57.74 100,28.87 100,86.6" fill="#192B3C"/><polygon points="50,57.74 100,86.6 50,115.47" fill="#1B8BB0"/><polygon points="50,57.74 50,115.47 0,86.6" fill="#C8CACC"/><polygon points="50,57.74 0,86.6 0,28.87" fill="#DDDBD4"/></svg></span>`;
+  const SVG_LOGO=`<span class="s4u-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 115.47" style="display:block;flex-shrink:0"><polygon points="50,57.74 0,28.87 50,0" fill="#C1A36F"/><polygon points="50,57.74 50,0 100,28.87" fill="#A79162"/><polygon points="50,57.74 100,28.87 100,86.6" fill="#0D1B2A"/><polygon points="50,57.74 100,86.6 50,115.47" fill="#1281AE"/><polygon points="50,57.74 50,115.47 0,86.6" fill="#CDD0C9"/><polygon points="50,57.74 0,86.6 0,28.87" fill="#F4F5F0"/></svg></span>`;
   const statusLabel={brouillon:t('statusBrouillon'),envoye:t('statusEnvoye'),accepte:t('statusAccepte'),refuse:t('statusRefuse'),expire:t('statusExpire')};
   const statusColor={brouillon:'#6B7280',envoye:'#2B82ED',accepte:'#16a34a',refuse:'#dc2626',expire:'#ea580c'};
   const sc=st.status||'brouillon';
@@ -1323,7 +1323,7 @@ function buildPDF(){
   const validDate=()=>{try{const d=new Date(emissionStr);d.setDate(d.getDate()+(parseInt(c.validite)||7));return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return'—';}};
   const lg=getLegal();
 
-  const SVG_PDF=`<span style="width:36px;height:42px;display:block;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 115.47" style="display:block;flex-shrink:0"><polygon points="50,57.74 0,28.87 50,0" fill="#EBE9E2"/><polygon points="50,57.74 50,0 100,28.87" fill="#B8965A"/><polygon points="50,57.74 100,28.87 100,86.6" fill="#192B3C"/><polygon points="50,57.74 100,86.6 50,115.47" fill="#1B8BB0"/><polygon points="50,57.74 50,115.47 0,86.6" fill="#C8CACC"/><polygon points="50,57.74 0,86.6 0,28.87" fill="#DDDBD4"/></svg></span>`;
+  const SVG_PDF=`<span style="width:36px;height:42px;display:block;flex-shrink:0"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 115.47" style="display:block;flex-shrink:0"><polygon points="50,57.74 0,28.87 50,0" fill="#C1A36F"/><polygon points="50,57.74 50,0 100,28.87" fill="#A79162"/><polygon points="50,57.74 100,28.87 100,86.6" fill="#0D1B2A"/><polygon points="50,57.74 100,86.6 50,115.47" fill="#1281AE"/><polygon points="50,57.74 50,115.47 0,86.6" fill="#CDD0C9"/><polygon points="50,57.74 0,86.6 0,28.87" fill="#F4F5F0"/></svg></span>`;
 
   const rows=st.sections.filter(s=>{
     if(s.phases)return s.phases.some(ph=>!ph.off&&(parseFloat(ph.ht)||0)>0)||s.phases.every(ph=>ph.off);
@@ -1446,7 +1446,7 @@ table.t{width:100%;border-collapse:collapse;margin-bottom:14px}
 tr.t-hdr td{font-size:9px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--sg);padding:4px 8px;border-bottom:1px solid var(--navy);text-align:left}
 tr.t-hdr td:last-child{text-align:right;width:120px}
 tr.sr{break-after:avoid;page-break-after:avoid}tr.sr td{background:rgba(13,27,42,.14);border-top:0.5px solid rgba(13,27,42,.1);padding:6px 8px;font-size:12px;font-weight:500;break-inside:avoid;break-before:avoid}
-td.cn{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:700;color:var(--gold);width:22px;font-size:14px}
+td.cn{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:700;color:var(--gold);width:22px;font-size:16px}
 td.ca{text-align:right;white-space:nowrap}
 tr.ir td{padding:2px 8px 2px 24px;border-bottom:0.5px solid rgba(13,27,42,.04);break-inside:avoid}
 td.ci{font-size:11px;color:var(--sg)}
