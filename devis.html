@@ -713,7 +713,7 @@ async function atSave(){
     const tvaMap={'fr':'France (TVA)','fr_na':'France (franchise TVA)','eu':'UE (autoliquidation)','export':'Export hors UE'};
     const softFields={
       'Statut':statMap[st.status]||'Brouillon',
-      'Langue':st.lang==='en'?'Anglais':'Français',
+      'Langue':st.lang,
       'Regime_TVA':tvaMap[st.tvaMode]||st.tvaMode,
       ...(st.ctx.salonSurface&&st.type!=='s'&&st.type!=='m'?{'Surface_(m2)':parseFloat(st.ctx.salonSurface)}:{})
     };
