@@ -368,9 +368,10 @@ async function atGet(table,recordId){
   if(!r.ok)throw new Error(`Airtable ${r.status}`);
   return(await r.json()).fields;
 }
-async function atPatch(table,recordId,fields){
+async function atPatch(table,recordId,fields,typecast=false){
+  const body=typecast?{fields,typecast:true}:{fields};
   const r=await fetch(`${AT_BASE}/${table}/${recordId}`,{
-    method:'PATCH',headers:AT_HDR,body:JSON.stringify({fields})
+    method:'PATCH',headers:AT_HDR,body:JSON.stringify(body)
   });
   if(!r.ok){
     let msg=`Airtable ${r.status}`;
@@ -708,27 +709,23 @@ async function atSave(){
       'Validite_Jours':parseInt(st.ctx.validite)||7,
       ...(expiryDate?{'Date_Expiration':expiryDate}:{})
     };
-    /* softFields : champs single-select Airtable — rejetés silencieusement si l'option n'existe pas */
+    /* softFields : champs single-select — envoyés avec typecast:true pour forcer la création de l'option */
+    const tvaMap={'fr':'France (TVA)','fr_na':'France (franchise TVA)','eu':'UE (autoliquidation)','export':'Export hors UE'};
     const softFields={
       'Statut':statMap[st.status]||'Brouillon',
-      'Langue':st.lang,
-      'Regime_TVA':st.tvaMode,
+      'Langue':st.lang==='en'?'Anglais':'Français',
+      'Regime_TVA':tvaMap[st.tvaMode]||st.tvaMode,
       ...(st.ctx.salonSurface&&st.type!=='s'&&st.type!=='m'?{'Surface_(m2)':parseFloat(st.ctx.salonSurface)}:{})
     };
-    /* Essai 1 : tout en une fois */
-    try{
-      await atPatch(TBL_DEVIS,st.ctx._atRecordId,{...safeFields,...softFields});
-      console.log('[atSave] PATCH complet OK');
-    }catch(e1){
-      console.warn('[atSave] PATCH complet échoué ('+e1.message+') → safeFields seuls');
-      /* Essai 2 : champs sûrs uniquement — ne peut pas échouer avec 422 */
-      await atPatch(TBL_DEVIS,st.ctx._atRecordId,safeFields);
-      console.log('[atSave] PATCH sûr OK');
-      /* Essai 3 : single-selects en arrière-plan, erreur ignorée */
-      atPatch(TBL_DEVIS,st.ctx._atRecordId,softFields).catch(e2=>{
-        console.warn('[atSave] softFields ignorés :',e2.message);
-      });
-    }
+    /* Essai 1 : champs sûrs — ne peut jamais échouer en 422 */
+    await atPatch(TBL_DEVIS,st.ctx._atRecordId,safeFields);
+    console.log('[atSave] PATCH safeFields OK');
+    /* Essai 2 : single-selects avec typecast (crée l'option si absent et autorisé) */
+    atPatch(TBL_DEVIS,st.ctx._atRecordId,softFields,true).then(()=>{
+      console.log('[atSave] PATCH softFields OK');
+    }).catch(e=>{
+      console.warn('[atSave] softFields partiellement ignorés :',e.message);
+    });
     st.savedAt=new Date().toISOString();
     showBanner('success',t('atSaved'));
     setSavingDot(false);
