@@ -171,6 +171,8 @@ body{background:var(--cream);padding:1.5rem 1rem}
 .dli-status.accepte{background:rgba(34,197,94,.1);color:#166534;border-color:rgba(34,197,94,.3)}
 .dli-status.refuse{background:rgba(239,68,68,.1);color:#991b1b;border-color:rgba(239,68,68,.3)}
 .dli-status.expire{background:rgba(251,146,60,.1);color:#9a3412;border-color:rgba(251,146,60,.3)}
+.dli-status.annule{background:rgba(107,114,128,.15);color:#374151;border-color:rgba(107,114,128,.4)}
+.annule-banner{background:rgba(107,114,128,.08);border:0.5px solid rgba(107,114,128,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#374151;display:flex;align-items:center;gap:8px}
 .softlock-banner{background:rgba(251,146,60,.08);border:0.5px solid rgba(251,146,60,.4);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#92400e;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .marge-block{background:rgba(16,185,129,.06);border:0.5px solid rgba(16,185,129,.3);border-radius:8px;padding:12px 16px;margin:12px 0}
 </style>
@@ -237,7 +239,7 @@ fr:{
   salonNom:'Salon',salonLieu:'Lieu',salonDates:'Dates',salonSurface:'Surface (m²)',
   devisNum:'N° de devis',devisDate:'Date d\'émission',devisValidite:'Validité',
   saveBtn:'Sauvegarder',listBtn:'Mes devis',newBtn:'Nouveau devis',
-  statusBrouillon:'Brouillon',statusEnvoye:'Envoyé',statusAccepte:'Accepté',statusRefuse:'Refusé',statusExpire:'Expiré',
+  statusBrouillon:'Brouillon',statusEnvoye:'Envoyé',statusAccepte:'Accepté',statusRefuse:'Refusé',statusExpire:'Expiré',statusAnnule:'Annulé',
   ctxTitle:'Client & Salon',
   readonlyNote:'Ce devis est verrouillé (statut : ',readonlyNote2:'). Générez le PDF ou modifiez le statut pour rouvrir.',
   atLoading:'Chargement depuis Airtable…',atLoaded:'Données chargées depuis Airtable',atError:'Erreur Airtable : ',atSaving:'Sauvegarde…',atSaved:'Sauvegardé dans Airtable',atSavedLS:'Sauvegardé en local',
@@ -271,7 +273,7 @@ en:{
   salonNom:'Show',salonLieu:'Venue',salonDates:'Dates',salonSurface:'Area (m²)',
   devisNum:'Quote ref.',devisDate:'Issue date',devisValidite:'Valid for',
   saveBtn:'Save',listBtn:'My quotes',newBtn:'New quote',
-  statusBrouillon:'Draft',statusEnvoye:'Sent',statusAccepte:'Accepted',statusRefuse:'Declined',statusExpire:'Expired',
+  statusBrouillon:'Draft',statusEnvoye:'Sent',statusAccepte:'Accepted',statusRefuse:'Declined',statusExpire:'Expired',statusAnnule:'Cancelled',
   ctxTitle:'Client & Show',
   readonlyNote:'This quote is locked (status: ',readonlyNote2:'). Generate PDF or change status to reopen.',
   atLoading:'Loading from Airtable…',atLoaded:'Data loaded from Airtable',atError:'Airtable error: ',atSaving:'Saving…',atSaved:'Saved to Airtable',atSavedLS:'Saved locally',
@@ -682,7 +684,7 @@ let _saveTimer=null;
 let _unlocked=false;
 function scheduleSave(){
   if(!st._atMode||!st.ctx._atRecordId)return;
-  const readonly=st.status==='accepte'||st.status==='refuse';
+  const readonly=st.status==='accepte'||st.status==='refuse'||st.status==='annule';
   if(readonly)return;
   clearTimeout(_saveTimer);
   setSavingDot(true);
@@ -693,7 +695,7 @@ async function atSave(){
   showBanner('saving',t('atSaving'));
   try{
     const{ht,rmt,ap,ttc,acompte,solde}=calc();
-    const statMap={brouillon:'Brouillon',envoye:'Envoyé',accepte:'Accepté',refuse:'Refusé',expire:'Expiré'};
+    const statMap={brouillon:'Brouillon',envoye:'Envoyé',accepte:'Accepté',refuse:'Refusé',expire:'Expiré',annule:'Annulé'};
     let expiryDate='';
     try{const d=new Date(st.ctx.dateEmission);d.setDate(d.getDate()+(parseInt(st.ctx.validite)||7));expiryDate=d.toISOString().split('T')[0];}catch{}
     const devisJSON=encodeURIComponent(JSON.stringify(st));
@@ -871,8 +873,8 @@ function setSavingDot(saving){
 /* ═══ UI: S4U HEADER ═══ */
 function headerHTML(){
   const SVG_LOGO=`<span class="s4u-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 115.47" style="display:block;flex-shrink:0"><polygon points="50,57.74 0,28.87 50,0" fill="#C1A36F"/><polygon points="50,57.74 50,0 100,28.87" fill="#A79162"/><polygon points="50,57.74 100,28.87 100,86.6" fill="#0D1B2A"/><polygon points="50,57.74 100,86.6 50,115.47" fill="#1281AE"/><polygon points="50,57.74 50,115.47 0,86.6" fill="#CDD0C9"/><polygon points="50,57.74 0,86.6 0,28.87" fill="#F4F5F0"/></svg></span>`;
-  const statusLabel={brouillon:t('statusBrouillon'),envoye:t('statusEnvoye'),accepte:t('statusAccepte'),refuse:t('statusRefuse'),expire:t('statusExpire')};
-  const statusColor={brouillon:'#6B7280',envoye:'#2B82ED',accepte:'#16a34a',refuse:'#dc2626',expire:'#ea580c'};
+  const statusLabel={brouillon:t('statusBrouillon'),envoye:t('statusEnvoye'),accepte:t('statusAccepte'),refuse:t('statusRefuse'),expire:t('statusExpire'),annule:t('statusAnnule')};
+  const statusColor={brouillon:'#6B7280',envoye:'#2B82ED',accepte:'#16a34a',refuse:'#dc2626',expire:'#ea580c',annule:'#4B5563'};
   const sc=st.status||'brouillon';
   return`<div class="app-header">
     <div class="s4u-brand">
@@ -902,7 +904,7 @@ function ctxHTML(){
   const validDate=()=>{
     try{const d=new Date(c.dateEmission);d.setDate(d.getDate()+(parseInt(c.validite)||7));return d.toISOString().split('T')[0];}catch{return'';}
   };
-  const readonly=st.status==='accepte'||st.status==='refuse';
+  const readonly=st.status==='accepte'||st.status==='refuse'||st.status==='annule';
   const softLocked=!readonly&&!_unlocked&&(st.status==='envoye'||st.status==='expire');
   const frozenUI=readonly||softLocked;
   /* atRo : champs toujours rechargés depuis Airtable → lecture seule en mode brouillon AT */
@@ -1142,7 +1144,7 @@ function sigBlockHTML(){
 /* ═══ BOTTOM BAR ═══ */
 function bottomBarHTML(){
   const saved=st.savedAt;
-  const readonly=st.status==='accepte'||st.status==='refuse';
+  const readonly=st.status==='accepte'||st.status==='refuse'||st.status==='annule';
   const softLocked=!readonly&&!_unlocked&&(st.status==='envoye'||st.status==='expire');
   const dot=saved?'saved':'unsaved';
   const savetxt=saved?`${st.lang==='fr'?'Sauvegardé':'Saved'} ${new Date(saved).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}`:(st.lang==='fr'?'Non sauvegardé':'Unsaved');
@@ -1196,13 +1198,14 @@ function margeBruteHTML(){
   </div>`;
 }
 function render(){
-  const readonly=st.status==='accepte'||st.status==='refuse';
+  const readonly=st.status==='accepte'||st.status==='refuse'||st.status==='annule';
   const softLocked=!readonly&&!_unlocked&&(st.status==='envoye'||st.status==='expire');
   const frozenUI=readonly||softLocked;
   const cgvPh=`<div class="cgv-ph"><strong style="font-family:'Cormorant Garamond',serif;font-size:14px;color:var(--navy)">${t('cgvTitle')}</strong><br>${t('cgvPh')}</div>`;
   const softBanner=softLocked?`<div class="softlock-banner">⚠ ${st.lang==='en'?'This quote has already been sent to the client. Use the button below to unlock editing.':'Attention, ce devis a déjà été envoyé au client. Utilisez le bouton en bas de page pour le modifier.'}</div>`:'';
 
-  const body=(readonly?`<div class="readonly-banner">🔒 ${t('readonlyNote')}<strong>${t('status'+st.status.charAt(0).toUpperCase()+st.status.slice(1))}</strong>${t('readonlyNote2')}</div>`:softBanner)
+  const annuleBanner=`<div class="annule-banner">🚫 ${t('readonlyNote')}<strong>${t('statusAnnule')}</strong>${t('readonlyNote2')}</div>`;
+  const body=(st.status==='annule'?annuleBanner:readonly?`<div class="readonly-banner">🔒 ${t('readonlyNote')}<strong>${t('status'+st.status.charAt(0).toUpperCase()+st.status.slice(1))}</strong>${t('readonlyNote2')}</div>`:softBanner)
     +st.sections.map((s,i)=>secHTML(s,i)).join('')
     +(frozenUI?'':addSelHTML())
     +totHTML()
@@ -1284,8 +1287,8 @@ function uCtx(k,v){
   }
 }
 function uStatus(v){
-  const wasTerminal=st.status==='accepte'||st.status==='refuse';
-  const becomesTerminal=v==='accepte'||v==='refuse';
+  const wasTerminal=st.status==='accepte'||st.status==='refuse'||st.status==='annule';
+  const becomesTerminal=v==='accepte'||v==='refuse'||v==='annule';
   if(wasTerminal&&!becomesTerminal){
     if(!confirm(st.lang==='fr'?'Réouvrir ce devis en modification ?':'Reopen this quote for editing?'))return;
   }
