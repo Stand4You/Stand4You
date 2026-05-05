@@ -1601,33 +1601,41 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
 </div>
 <script>
 window.addEventListener('load',function(){
-  /* ── Mesure 1 mm en pixels à la résolution courante ── */
+  /* Mesure 1mm réel en pixels (adaptatif DPI/zoom) */
   var probe=document.createElement('div');
   probe.style.cssText='position:fixed;height:1mm;width:1mm;visibility:hidden;pointer-events:none';
   document.body.appendChild(probe);
   var mm=probe.getBoundingClientRect().height||3.78;
   document.body.removeChild(probe);
 
-  /* ── Hauteur utile d'une page A4 ── */
-  /* @page margin top:16mm bottom:16mm → contenu = 297-32 = 265mm              */
-  /* La footnote (position:fixed;bottom:0;height:10mm) couvre les 10mm du bas  */
-  /* On réserve 13mm de zone de sécurité (footer + 3mm buffer)                 */
-  var pageH=265*mm, danger=13*mm;
+  /* A4 : 297mm – 16mm(haut) – 16mm(bas) = 265mm de zone utile par page.
+     La footnote (position:fixed;bottom:0;height:10mm + bordure ~0.5mm) couvre
+     les ~11mm inférieurs de chaque page. On prend 15mm de zone de sécurité. */
+  var pageH=265*mm, danger=15*mm;
 
-  /* ── 3 passes pour gérer les recalculs en cascade ── */
-  for(var pass=0;pass<3;pass++){
-    document.querySelectorAll('.ls').forEach(function(el){
-      /* getBoundingClientRect() force un reflow → positions à jour */
-      var top=el.getBoundingClientRect().top+window.pageYOffset;
-      var posInPage=top%pageH;
-      if(posInPage>pageH-danger){
+  /* Pour chaque élément : est-ce qu'une partie de lui tombe dans la zone danger
+     de la page où il commence ?
+     dangerStart = ((pageN+1) * pageH) - danger
+     Si bottom > dangerStart ET top < (pageN+1)*pageH → chevauchement → saut. */
+  function fixEls(sel){
+    document.querySelectorAll(sel).forEach(function(el){
+      var rect=el.getBoundingClientRect();
+      var top=rect.top+window.pageYOffset;
+      var bottom=top+rect.height;
+      var pageN=Math.floor(top/pageH);
+      var dangerStart=(pageN+1)*pageH-danger;
+      if(bottom>dangerStart && top<(pageN+1)*pageH){
         el.style.breakBefore='page';
         el.style.pageBreakBefore='always';
       }
     });
   }
 
-  setTimeout(function(){window.print();},400);
+  /* 5 passes : chaque passe recalcule les positions après les sauts précédents.
+     .ls = blocs entiers ; .ls .lp = paragraphes pour les blocs longs multi-pages */
+  for(var i=0;i<5;i++){ fixEls('.ls'); fixEls('.ls .lp'); }
+
+  setTimeout(function(){window.print();},500);
 });
 <\/script>
 </body></html>`;
