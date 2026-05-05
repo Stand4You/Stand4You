@@ -792,6 +792,7 @@ function lsNew(){
   st.sections=DEFS_IDX.map((ci,i)=>{const s=mkSec(ci,i);return s;});
   st.remise='0';st.rt='%';st.tvaMode='fr';st.acp='50';
   st.legal=JSON.parse(JSON.stringify(LEGAL_DEF));
+  st.fraisGestion=false;st.fraisGestionDesc='';
   st.status='brouillon';st.savedAt=null;st._atMode=false;
   st.ctx={num:genDevisNum(),dateEmission:todayStr(),validite:'7',
     cliSociete:'',cliContact:'',cliEmail:'',cliAdresse:'',cliTVA:'',cliNature:'fr',
@@ -804,6 +805,8 @@ function restoreState(data){
   st.type=data.type||'n';st.remise=data.remise||'0';st.rt=data.rt||'%';
   st.tvaMode=data.tvaMode||'fr';st.acp=data.acp||'50';st.lang=data.lang||'fr';
   st.legal=data.legal||JSON.parse(JSON.stringify(LEGAL_DEF));
+  st.fraisGestion=data.fraisGestion||false;
+  st.fraisGestionDesc=data.fraisGestionDesc||'';
   st.ctx=Object.assign({ctxOpen:false,_atRecordId:null,_atClientId:null,_atEvtId:null,_atProjetId:null,cliTVA:'',coutFournisseurHT:''},data.ctx);
   st.status=data.status||'brouillon';
   st.savedAt=data.savedAt||null;
@@ -1482,7 +1485,7 @@ body{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--navy);margin:0;
 footer.rf{position:fixed;bottom:0;left:0;right:0;height:10mm;display:flex;align-items:flex-start;justify-content:center;padding-top:3mm;border-top:0.5px solid rgba(13,27,42,.18);background:#fff;font-size:8.5px;color:#0D1B2A;text-align:center;line-height:1.4;z-index:100;}
 @page{@bottom-right{content:counter(page) " / " counter(pages);font-family:'DM Sans',sans-serif;font-size:8px;color:#9ca3af;margin-right:14mm;margin-bottom:4mm;}}
 .wrap{padding:0;}
-@media print{.pb,.np{display:none!important}.wrap{padding-bottom:16mm}table.t,table.t>tbody{break-inside:auto!important;page-break-inside:auto!important}}@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:""}}
+@media print{.pb,.np{display:none!important}.wrap{padding-bottom:24mm}table.t,table.t>tbody{break-inside:auto!important;page-break-inside:auto!important}}@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:""}}
 .doc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:10px 14px;background:#0D1B2A;border-radius:8px;border-bottom:none}
 .brand{display:flex;align-items:center;gap:10px}
 .brand-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:#F5F5F0}
@@ -1519,9 +1522,9 @@ tr.rm td{font-weight:500;font-size:13px;color:var(--navy)}
 tr.ra td{border-top:0.5px solid rgba(13,27,42,.15);padding-top:6px;font-weight:500;font-size:13px;color:var(--navy)}
 tr.rt td{border-top:1.5px solid var(--navy);padding-top:6px;font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--navy)}
 tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
-.ls{margin-bottom:14px;break-inside:avoid;page-break-inside:avoid}
-.lt{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--navy);border-left:3px solid var(--gold);padding-left:7px;margin-bottom:6px}
-.lb{font-size:11px;color:var(--sg);line-height:1.7}
+.ls{margin-bottom:14px}
+.lt{font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:600;color:var(--navy);border-left:3px solid var(--gold);padding-left:7px;margin-bottom:6px;break-after:avoid;page-break-after:avoid}
+.lb{font-size:11px;color:var(--sg);line-height:1.7;orphans:4;widows:4}
 .lp{margin-bottom:4px;orphans:4;widows:4}
 .cgv-block{break-before:page;padding-top:13mm}
 .cgv-hdr{margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--gold)}
