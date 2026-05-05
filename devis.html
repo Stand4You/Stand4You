@@ -1599,7 +1599,38 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
     <p style="font-size:11px;color:#9ca3af;margin-top:10px;font-style:italic">${t('printTip')}</p>
   </div>
 </div>
-<script>window.addEventListener(\'load\',()=>setTimeout(()=>window.print(),500));<\/script>\n</body></html>`;
+<script>
+window.addEventListener('load',function(){
+  /* ── Mesure 1 mm en pixels à la résolution courante ── */
+  var probe=document.createElement('div');
+  probe.style.cssText='position:fixed;height:1mm;width:1mm;visibility:hidden;pointer-events:none';
+  document.body.appendChild(probe);
+  var mm=probe.getBoundingClientRect().height||3.78;
+  document.body.removeChild(probe);
+
+  /* ── Hauteur utile d'une page A4 ── */
+  /* @page margin top:16mm bottom:16mm → contenu = 297-32 = 265mm              */
+  /* La footnote (position:fixed;bottom:0;height:10mm) couvre les 10mm du bas  */
+  /* On réserve 13mm de zone de sécurité (footer + 3mm buffer)                 */
+  var pageH=265*mm, danger=13*mm;
+
+  /* ── 3 passes pour gérer les recalculs en cascade ── */
+  for(var pass=0;pass<3;pass++){
+    document.querySelectorAll('.ls').forEach(function(el){
+      /* getBoundingClientRect() force un reflow → positions à jour */
+      var top=el.getBoundingClientRect().top+window.pageYOffset;
+      var posInPage=top%pageH;
+      if(posInPage>pageH-danger){
+        el.style.breakBefore='page';
+        el.style.pageBreakBefore='always';
+      }
+    });
+  }
+
+  setTimeout(function(){window.print();},400);
+});
+<\/script>
+</body></html>`;
 }
 function checkAlerts(){
   const c=st.ctx;
