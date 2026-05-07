@@ -624,14 +624,14 @@ async function atLoad(recordId){
         /* Statut toujours depuis Airtable (pas du JSON — peut avoir changé hors UI) */
         st.status=(devis.Statut||'Brouillon').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
         if(devis['Créé par']&&devis['Créé par'].name)st.ctx._createdBy=devis['Créé par'].name;
-        /* En brouillon : refresh systématique des champs Airtable (client, événement, num, dates) */
+        /* En brouillon : refresh systématique des champs Airtable (client, événement, num, dates).
+           Statuts figés (envoyé, expiré, accepté, refusé, annulé) : JSON seul — aucune donnée Airtable
+           ne vient écraser la dernière version sauvegardée. */
         if(st.status==='brouillon'){
           st.ctx.dateEmission=todayStr();
           if(devis.Fx_Numero)st.ctx.num=devis.Fx_Numero;
           /* Date_Expiration calculée dynamiquement — non chargée depuis Airtable */
           await atLoadLinked(devis);
-        }else{
-          if(devis.Fx_Numero)st.ctx.num=devis.Fx_Numero;
         }
         console.log('[atLoad] JSON restauré →',st.sections.length,'rubriques (catalogue ignoré)');
         restoreOk=true;
@@ -730,6 +730,7 @@ async function atSave(){
       'Solde_Total':Math.round(solde*100)/100,
       'Validite_Jours':parseInt(st.ctx.validite)||7,
       'Frais_Gestion':!!st.fraisGestion,
+      ...(st.ctx.dateEmission?{'Date_Emission':st.ctx.dateEmission}:{}),
       ...(expiryDate?{'Date_Expiration':expiryDate}:{})
     };
     /* softFields : champs single-select — envoyés avec typecast:true pour forcer la création de l'option */
@@ -1358,7 +1359,7 @@ function uStatus(v){
 }
 
 /* ═══ PDF ═══ */
-const FT=`SAS Stand 4 You\u00a0· Capital social\u00a05\u00a0000\u00a0€\u00a0· SIRET\u00a0102\u00a0806\u00a0783\u00a000019\u00a0· RCS Nice\u00a0· N°\u00a0TVA\u00a0: FR\u00a034102806783\u00a0· Code APE\u00a0: 43.32A\u00a0<br>Siège\u00a0: 485, route de Saint-Sébastien\u00a0– 06950 Falicon\u00a0· contact@stand4you.com`;
+const FT=`SAS Stand 4 You\u00a0· Capital social\u00a05\u00a0000\u00a0€\u00a0· SIRET\u00a0102\u00a0806\u00a0783\u00a000019\u00a0· RCS Nice\u00a0· N°\u00a0TVA\u00a0: FR\u00a034102806783\u00a0· Code APE\u00a0: 8230Z\u00a0<br>Siège\u00a0: 485, route de Saint-Sébastien\u00a0– 06950 Falicon\u00a0· contact@stand4you.com`;
 
 function buildPDF(){
   const{ht,rmt,ap,tva,ttc,acompte,solde}=calc();
@@ -1474,7 +1475,7 @@ function buildPDF(){
   const cgvHTML=isEn?enCGV:frCGV;
 
   return`<!DOCTYPE html><html lang="${st.lang}"><head><meta charset="UTF-8">
-<title>${t('titleDoc')} ${esc(c.num)} — Stand 4 You</title>
+<title>${t('titleDoc')} ${esc(c.num)}${c.cliSociete?` — ${esc(c.cliSociete)}`:''}</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -1483,7 +1484,7 @@ html,body{background:#fff}
 body{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--navy);margin:0;padding:0}
 @page{size:A4 portrait;margin:16mm 14mm 20mm;}
 @page{@bottom-right{content:counter(page) " / " counter(pages);font-family:'DM Sans',sans-serif;font-size:8px;color:#9ca3af;}}
-@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:"SAS Stand 4 You · Capital social 5 000 € · SIRET 102 806 783 00019 · RCS Nice · N° TVA : FR 34102806783 · Code APE : 43.32A\\A Siège : 485, route de Saint-Sébastien – 06950 Falicon · contact@stand4you.com";font-family:'DM Sans',sans-serif;font-size:7.5px;color:#0D1B2A;text-align:center;white-space:pre;border-top:0.5px solid rgba(13,27,42,.18);padding-top:2mm;line-height:1.6;}}
+@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:"SAS Stand 4 You · Capital social 5 000 € · SIRET 102 806 783 00019 · RCS Nice · N° TVA : FR 34102806783 · Code APE : 8230Z\\A Siège : 485, route de Saint-Sébastien – 06950 Falicon · contact@stand4you.com";font-family:'DM Sans',sans-serif;font-size:7.5px;color:#0D1B2A;text-align:center;white-space:pre;border-top:0.5px solid rgba(13,27,42,.18);padding-top:2mm;line-height:1.6;}}
 .wrap{padding:0;}
 @media print{.pb,.np{display:none!important}table.t,table.t>tbody{break-inside:auto!important;page-break-inside:auto!important}}
 .doc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:10px 14px;background:#0D1B2A;border-radius:8px;border-bottom:none}
