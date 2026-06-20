@@ -326,6 +326,7 @@ async def run(args):
 
 
 def main():
+    global OUTPUT_FILE
     parser = argparse.ArgumentParser(description="ILTM Exhibitor Scraper")
     parser.add_argument("--with-details", action="store_true",
                         help="Visite chaque fiche pour récupérer website/email/phone")
@@ -338,8 +339,6 @@ def main():
     parser.add_argument("--output", default=OUTPUT_FILE,
                         help=f"Fichier CSV de sortie (défaut: {OUTPUT_FILE})")
     args = parser.parse_args()
-
-    global OUTPUT_FILE
     OUTPUT_FILE = args.output
 
     asyncio.run(run(args))
