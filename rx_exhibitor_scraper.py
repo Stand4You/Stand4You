@@ -111,18 +111,7 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
     for attempt in range(retries):
         try:
             driver.get(url)
-            # Wait for contact section to load (loads last via React)
-            try:
-                WebDriverWait(driver, 15).until(
-                    lambda d: d.execute_script(
-                        "return document.querySelector('a[href^=\"mailto:\"], a[href^=\"tel:\"], a[href^=\"http\"]') !== null "
-                        "|| document.body.innerText.includes('COMPANY CONTACTS') "
-                        "|| document.body.innerText.includes('COMPANY ADDRESS')"
-                    )
-                )
-                time.sleep(1)
-            except TimeoutException:
-                time.sleep(4)
+            time.sleep(random.uniform(2.5, 4.0))
 
             contact = driver.execute_script("""
                 const links = [...document.querySelectorAll('a[href]')];
