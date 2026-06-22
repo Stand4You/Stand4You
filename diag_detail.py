@@ -1,5 +1,6 @@
 """
 Inspecte une fiche exposant ILTM pour voir toutes les données disponibles.
+Récupère d'abord une vraie URL depuis la liste, puis inspecte la fiche.
 """
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -7,7 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time, json
+import time
 
 opts = Options()
 opts.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
@@ -19,51 +20,63 @@ opts.page_load_strategy = "none"
 s = Service(r"C:\Users\raf\.wdm\drivers\chromedriver\win64\149.0.7827.155\chromedriver-win64\chromedriver.exe")
 d = webdriver.Chrome(service=s, options=opts)
 
-# Use a known exhibitor with data
-url = "https://www.iltm.com/cannes/en-gb/exhibitor-directory/exhibitor-details.fraser%20yachts.org-d0d47a24-cf1a-4d40-9a82-acde67da8e73.html"
+# Step 1: get a real URL from the directory
+print("Chargement de l'annuaire pour obtenir une vraie URL...")
+d.get("https://www.iltm.com/cannes/en-gb/exhibitor-directory.html")
+try:
+    WebDriverWait(d, 8).until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))).click()
+except:
+    pass
+time.sleep(4)
+# Scroll a little to load some exhibitors
+for i in range(3):
+    d.execute_script(f"window.scrollTo(0, {(i+1)*2000})")
+    time.sleep(1.5)
+
+urls = d.execute_script("""
+    return [...document.querySelectorAll('.exhibitor-category a')].slice(0,3).map(a => ({name: a.textContent.trim().slice(0,50), href: a.href}));
+""")
+print("URLs trouvées:", urls)
+
+if not urls:
+    print("Aucune URL trouvée.")
+    d.quit()
+    exit()
+
+# Step 2: visit the first detail page
+url = urls[0]['href']
+name = urls[0]['name']
+print(f"\nInspection de : {name}\n{url}\n")
+
 d.get(url)
 time.sleep(4)
 
 result = d.execute_script("""
-    // Dump everything visible on the page
-    const getText = sel => {
-        const el = document.querySelector(sel);
-        return el ? el.textContent.trim() : null;
-    };
-    const getAll = sel => [...document.querySelectorAll(sel)].map(e => e.textContent.trim()).filter(Boolean);
-    const getLinks = sel => [...document.querySelectorAll(sel + ' a[href]')].map(a => ({text: a.textContent.trim(), href: a.href}));
-
-    // All sections on the page
-    const sections = [...document.querySelectorAll('[class*="exhibitor-details"], [class*="exhibitor-contact"], [class*="exhibitor-summary"], [class*="exhibitor-desc"], [class*="description"]')];
-
-    // All links on page
-    const allLinks = [...document.querySelectorAll('a[href]')].map(a => ({
+    // All links on the page excluding navigation
+    const navClasses = ['global-nav', 'mega-nav', 'mobile-nav', 'tile__base', 'footer', 'skip-link'];
+    const allLinks = [...document.querySelectorAll('a[href]')].filter(a => {
+        const cls = a.className || '';
+        return !navClasses.some(nc => cls.includes(nc));
+    }).map(a => ({
         href: a.href,
-        text: a.textContent.trim().slice(0,60),
-        cls: a.className.slice(0,40)
-    })).filter(a => a.href && !a.href.includes('#') && a.text);
+        text: a.textContent.trim().slice(0, 60),
+        cls: a.className.slice(0, 40)
+    })).filter(a => a.text);
 
-    // All text blocks with their class
-    const textBlocks = sections.map(el => ({
-        cls: el.className,
-        text: el.innerText.trim().slice(0, 300)
-    }));
+    // All visible text sections
+    const mainContent = document.querySelector('main, [class*="exhibitor-details"], #main, .main-content');
+    const mainText = mainContent ? mainContent.innerText.trim() : document.body.innerText.slice(0, 3000);
 
     return {
-        title: document.title,
-        links: allLinks.filter(a => !a.href.includes('iltm.com/cannes/en-gb.html') && !a.href.includes('mega-nav')).slice(0, 30),
-        text_blocks: textBlocks
+        links: allLinks,
+        main_text: mainText.slice(0, 3000)
     };
 """)
 
-print("=== TITRE ===")
-print(result['title'])
-print("\n=== LIENS (website/email/tel/social) ===")
+print("=== CONTENU DE LA PAGE ===")
+print(result['main_text'])
+print("\n=== LIENS (hors navigation) ===")
 for l in result['links']:
-    print(f"  [{l['cls'][:30]}] {l['href'][:80]} | {l['text'][:40]}")
-print("\n=== BLOCS TEXTE ===")
-for b in result['text_blocks']:
-    print(f"\n--- {b['cls']} ---")
-    print(b['text'])
+    print(f"  {l['href'][:80]} | {l['text'][:50]}")
 
 d.quit()
