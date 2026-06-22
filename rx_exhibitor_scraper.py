@@ -121,7 +121,7 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
                     const href = a.href || '';
                     const cls = a.className || '';
                     if (skipCls.some(s => cls.includes(s))) continue;
-                    const skipDomains = ['iltm.com','rxglobal','reedexpo','privacy','twitter','facebook','instagram','linkedin','youtube','google','onetrust','trademark','accessibility','legal'];
+                    const skipDomains = ['iltm.com','rxglobal','reedexpo','privacy','twitter','facebook','instagram','linkedin','youtube','google','onetrust','trademark','accessibility','legal','pub-mediabox','rxweb-prd'];
                     if (href.startsWith('mailto:') && !email)
                         email = href.replace('mailto:', '').split('?')[0].trim();
                     else if (href.startsWith('tel:') && !phone)
@@ -146,7 +146,7 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
                     if i != -1 and i < end_idx:
                         end_idx = i
                 addr_block = after[:end_idx].strip()
-                addr_lines = [l.strip() for l in addr_block.split("\n") if l.strip()]
+                addr_lines = [l.strip() for l in addr_block.split("\n") if l.strip()][:8]
                 address = ", ".join(addr_lines)
                 country = addr_lines[-1] if addr_lines else ""
                 contact["address"] = address
