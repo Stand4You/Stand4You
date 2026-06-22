@@ -40,8 +40,8 @@ def make_driver(headless: bool) -> webdriver.Chrome:
     opts.add_argument("--window-size=1920,1080")
     opts.add_argument("--lang=fr-FR")
     opts.add_argument("--disable-blink-features=AutomationControlled")
-    opts.add_experimental_option("excludeSwitches", ["enable-automation"])
-    opts.add_experimental_option("useAutomationExtension", False)
+    opts.add_argument("--no-first-run")
+    opts.add_argument("--disable-dev-shm-usage")
     if headless:
         opts.add_argument("--headless=new")
 
