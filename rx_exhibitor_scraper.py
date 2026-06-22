@@ -1,7 +1,7 @@
 """
 ILTM Cannes Exhibitor Scraper — Selenium + Chrome
 Usage:
-  py -3.12 rx_exhibitor_scraper.py                          # list only
+  py -3.12 rx_exhibitor_scraper.py                          # list only (2799 lignes)
   py -3.12 rx_exhibitor_scraper.py --with-details           # + website/email/phone
   py -3.12 rx_exhibitor_scraper.py --with-details --limit 50
   py -3.12 rx_exhibitor_scraper.py --with-details --headless
@@ -25,7 +25,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 DIRECTORY_URL = "https://www.iltm.com/cannes/en-gb/exhibitor-directory.html"
 OUTPUT_FILE = "iltm_exhibitors.csv"
-CONTACT_SELECTOR = ".exhibitor-details-contact-us-links"
 CHROME_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 USER_DATA_DIR = r"C:\Temp\chrome-iltm"
 
@@ -39,17 +38,14 @@ def make_driver(headless: bool) -> webdriver.Chrome:
     opts.add_argument(f"--user-data-dir={USER_DATA_DIR}")
     opts.add_argument("--window-size=1920,1080")
     opts.add_argument("--lang=fr-FR")
-    opts.add_argument("--disable-blink-features=AutomationControlled")
-    opts.add_argument("--no-first-run")
     opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--disable-blink-features=AutomationControlled")
     if headless:
         opts.add_argument("--headless=new")
 
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     driver = webdriver.Chrome(service=service, options=opts)
-
-    # Patch navigator.webdriver
     driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
         "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
     })
@@ -58,10 +54,9 @@ def make_driver(headless: bool) -> webdriver.Chrome:
 
 def accept_cookies(driver):
     try:
-        btn = WebDriverWait(driver, 6).until(
+        WebDriverWait(driver, 8).until(
             EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
-        )
-        btn.click()
+        ).click()
         time.sleep(1)
         print("  [cookies] Bannière acceptée.")
     except TimeoutException:
@@ -72,46 +67,40 @@ def extract_list(driver) -> list[dict]:
     print("Chargement de la page annuaire...")
     driver.get(DIRECTORY_URL)
     accept_cookies(driver)
+    time.sleep(4)
 
-    # Wait for exhibitor cards
-    wait = WebDriverWait(driver, 30)
-    for sel in ["a.exhibitor-list-item", "a[class*='exhibitor-list']", ".exhibitor-list a"]:
-        try:
-            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, sel)))
+    print("Scroll pour charger tous les exposants...")
+    last_height = 0
+    for i in range(60):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+        time.sleep(1.5)
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        count = driver.execute_script(
+            "return document.querySelectorAll('.exhibitor-category').length"
+        )
+        if (i + 1) % 5 == 0:
+            print(f"  scroll {i+1}: {count} exposants chargés...")
+        if new_height == last_height and count > 100:
+            print(f"  → Fin du scroll. {count} exposants dans le DOM.")
             break
-        except TimeoutException:
-            continue
+        last_height = new_height
 
-    print("Extraction de la liste via JavaScript...")
+    print("Extraction des données...")
     exhibitors = driver.execute_script("""
-        const results = [];
-        const selectors = [
-            'a.exhibitor-list-item',
-            'a[class*="exhibitor-list"]',
-            '.exhibitor-list a',
-            '.exhibitor-list-item',
-        ];
-        let items = [];
-        for (const sel of selectors) {
-            items = [...document.querySelectorAll(sel)];
-            if (items.length > 0) break;
-        }
-        for (const el of items) {
-            const anchor = el.tagName === 'A' ? el : el.querySelector('a');
-            const name = (
-                el.querySelector('.exhibitor-list-item-name, h3, h2, .name')?.textContent
-                || el.textContent || ''
-            ).trim();
-            const stand = (
-                el.querySelector('.exhibitor-list-item-stand, .stand, [class*="stand"]')?.textContent || ''
-            ).trim();
-            const href = anchor ? anchor.href : '';
-            if (name) results.push({ name, stand, detail_url: href });
-        }
-        return results;
+        const items = [...document.querySelectorAll('.exhibitor-category')];
+        return items.map(el => {
+            const nameEl = el.querySelector('.exhibitor-name, h3, h2');
+            const standEl = el.querySelector('.exhibitor-contact-container');
+            const linkEl = el.querySelector('a') || el.closest('a');
+            const name = nameEl ? nameEl.textContent.trim() : '';
+            const standText = standEl ? standEl.textContent.trim() : '';
+            const stand = standText.replace(/^Stand\\s*/i, '').trim();
+            const href = linkEl ? linkEl.href : '';
+            return { name, stand, detail_url: href };
+        }).filter(e => e.name);
     """)
 
-    print(f"  → {len(exhibitors)} exposants trouvés.")
+    print(f"  → {len(exhibitors)} exposants extraits.")
     return exhibitors
 
 
@@ -124,7 +113,12 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
             time.sleep(random.uniform(0.8, 2.0))
 
             contact_found = False
-            for sel in [CONTACT_SELECTOR, ".exhibitor-details-contact", "[class*='contact-us']"]:
+            for sel in [
+                ".exhibitor-details-contact-us-links",
+                ".exhibitor-details-contact",
+                "[class*='contact-us']",
+                ".exhibitor-contact",
+            ]:
                 try:
                     WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, sel))
@@ -138,14 +132,21 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
                 print(f"    [warn] Bloc contact introuvable: {url}")
                 return contact
 
-            contact = driver.execute_script(f"""
-                const container = document.querySelector('{CONTACT_SELECTOR}')
-                    || document.querySelector('.exhibitor-details-contact')
-                    || document.querySelector('[class*="contact-us"]')
-                    || document.body;
+            contact = driver.execute_script("""
+                const selectors = [
+                    '.exhibitor-details-contact-us-links',
+                    '.exhibitor-details-contact',
+                    '[class*="contact-us"]',
+                    '.exhibitor-contact',
+                ];
+                let container = document.body;
+                for (const sel of selectors) {
+                    const el = document.querySelector(sel);
+                    if (el) { container = el; break; }
+                }
                 const links = [...container.querySelectorAll('a[href]')];
                 let website = '', email = '', phone = '';
-                for (const a of links) {{
+                for (const a of links) {
                     const href = a.href || '';
                     if (href.startsWith('mailto:') && !email)
                         email = href.replace('mailto:', '').split('?')[0].trim();
@@ -153,8 +154,8 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
                         phone = href.replace('tel:', '').trim();
                     else if (href.startsWith('http') && !href.includes('iltm.com') && !website)
                         website = href;
-                }}
-                return {{ website, email, phone }};
+                }
+                return { website, email, phone };
             """)
             return contact
 
