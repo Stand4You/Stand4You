@@ -23,32 +23,37 @@ except:
 
 time.sleep(5)
 
-# Scroll to trigger lazy loading
-for i in range(8):
-    d.execute_script(f"window.scrollTo(0, {(i+1)*1000})")
-    time.sleep(1)
+# Scroll to trigger lazy loading of all exhibitors
+print("Scrolling to load all exhibitors...")
+last_height = 0
+for _ in range(30):
+    d.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+    time.sleep(1.5)
+    new_height = d.execute_script("return document.body.scrollHeight")
+    count = d.execute_script("return document.querySelectorAll('.exhibitor-category').length")
+    print(f"  height={new_height} exhibitors={count}")
+    if new_height == last_height and count > 100:
+        break
+    last_height = new_height
 
-time.sleep(3)
-
+print("Extracting...")
 result = d.execute_script("""
-    // Check for iframes
-    const iframes = [...document.querySelectorAll('iframe')].map(f => f.src);
-
-    // Look for any element with exhibitor-related classes or data attributes
-    const allEls = [...document.querySelectorAll('[class*="exhibitor"], [data-exhibitor], [class*="Exhibitor"]')];
-
-    // Look for elements that might be list items (li, article, div with many siblings)
-    const articles = [...document.querySelectorAll('article, [role="listitem"], li')].slice(0, 5);
-
-    // Get page height to see if content loaded
-    const pageHeight = document.body.scrollHeight;
-
-    return {
-        iframes: iframes,
-        exhibitor_els: allEls.slice(0,5).map(e => ({tag:e.tagName, cls:e.className.slice(0,60), text:e.textContent.trim().slice(0,80)})),
-        articles: articles.map(e => ({tag:e.tagName, cls:e.className.slice(0,60), text:e.textContent.trim().slice(0,60)})),
-        page_height: pageHeight
-    };
+    const items = [...document.querySelectorAll('.exhibitor-category')];
+    return items.slice(0, 5).map(el => {
+        const nameEl = el.querySelector('.exhibitor-name, h3, h2');
+        const standEl = el.querySelector('.exhibitor-contact-container, [class*="stand"]');
+        const linkEl = el.querySelector('a') || el.closest('a');
+        const href = linkEl ? linkEl.href : '';
+        return {
+            name: nameEl ? nameEl.textContent.trim() : '',
+            stand: standEl ? standEl.textContent.trim().slice(0, 30) : '',
+            href: href
+        };
+    });
 """)
+print("Sample exhibitors:")
 print(json.dumps(result, indent=2))
+
+total = d.execute_script("return document.querySelectorAll('.exhibitor-category').length")
+print(f"\nTotal .exhibitor-category dans le DOM: {total}")
 d.quit()
