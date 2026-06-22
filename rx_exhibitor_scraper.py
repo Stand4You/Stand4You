@@ -111,7 +111,13 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
     for attempt in range(retries):
         try:
             driver.get(url)
-            time.sleep(random.uniform(2.5, 4.0))
+            # Wait for page content to settle — try exhibitor name, fallback to fixed delay
+            try:
+                WebDriverWait(driver, 15).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, ".exhibitor-name, h1, .exhibitor-details"))
+                )
+            except TimeoutException:
+                time.sleep(4)
 
             contact = driver.execute_script("""
                 const links = [...document.querySelectorAll('a[href]')];
