@@ -46,6 +46,7 @@ def make_driver(headless: bool) -> webdriver.Chrome:
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     driver = webdriver.Chrome(service=service, options=opts)
+    driver.set_page_load_timeout(25)
     driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
         "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
     })
@@ -109,7 +110,10 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
 
     for attempt in range(retries):
         try:
-            driver.get(url)
+            try:
+                driver.get(url)
+            except Exception:
+                pass  # page load timeout — continue with what loaded
             time.sleep(random.uniform(0.8, 2.0))
 
             contact_found = False
