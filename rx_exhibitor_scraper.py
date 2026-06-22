@@ -129,20 +129,15 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
                         website = href;
                 }
 
-                // Country: inside category list
+                // Country: extract from body text after "Country of Origin"
                 let country = '';
-                const labels = [...document.querySelectorAll('[class*="category"], [class*="detail-label"], dt, th')];
-                for (const el of labels) {
-                    if (el.textContent.trim() === 'Country of Origin') {
-                        const next = el.nextElementSibling || el.parentElement?.nextElementSibling;
-                        if (next) { country = next.textContent.trim(); break; }
+                const bodyText = document.body.innerText;
+                const lines = bodyText.split('\\n').map(l => l.trim()).filter(Boolean);
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i] === 'Country of Origin' && lines[i+1]) {
+                        country = lines[i+1].trim();
+                        break;
                     }
-                }
-                // Fallback: look for country in the categories section text
-                if (!country) {
-                    const body = document.body.innerText;
-                    const m = body.match(/Country of Origin[\\s\\S]{0,5}\\n([^\\n]+)/);
-                    if (m) country = m[1].trim();
                 }
 
                 // Address: COMPANY ADDRESS section
