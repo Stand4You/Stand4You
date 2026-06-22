@@ -129,20 +129,15 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
                         website = href;
                 }
 
-                // Country and Address: parse body text once
-                let country = '';
+                // Address and Country from COMPANY ADDRESS section
                 let address = '';
+                let country = '';
                 const bodyText = document.body.innerText;
-                const lines = bodyText.split('\\n').map(l => l.trim()).filter(Boolean);
-                for (let i = 0; i < lines.length; i++) {
-                    if (lines[i] === 'Country of Origin' && lines[i+1]) {
-                        country = lines[i+1].trim();
-                        break;
-                    }
-                }
-                const addrMatch = bodyText.match(/COMPANY ADDRESS[\\s\\S]{0,10}\\n([\\s\\S]{0,200}?)(?:\\n\\n|FOLLOW US|STAND|$)/);
+                const addrMatch = bodyText.match(/COMPANY ADDRESS[\s\S]{0,10}\n([\s\S]{0,300}?)(?:\n\n|FOLLOW US|STAND\(S\)|Recommended|$)/);
                 if (addrMatch) {
-                    address = addrMatch[1].trim().replace(/\\n+/g, ', ');
+                    const addrLines = addrMatch[1].trim().split('\\n').map(l => l.trim()).filter(Boolean);
+                    address = addrLines.join(', ');
+                    if (addrLines.length > 0) country = addrLines[addrLines.length - 1];
                 }
 
                 return { website, email, phone, country, address };
