@@ -106,7 +106,7 @@ def extract_list(driver) -> list[dict]:
 
 
 def extract_contact(driver, url: str, retries: int = 2) -> dict:
-    contact = {"website": "", "email": "", "phone": "", "country": "", "address": ""}
+    contact = {"website": "", "email": "", "phone": "", "address": "", "country": ""}
 
     for attempt in range(retries):
         try:
@@ -116,41 +116,42 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
             contact = driver.execute_script("""
                 const links = [...document.querySelectorAll('a[href]')];
                 let website = '', email = '', phone = '';
+                const skipCls = ['global-nav','mega-nav','footer','tile__base','link-list','mobile-nav'];
                 for (const a of links) {
                     const href = a.href || '';
                     const cls = a.className || '';
-                    // skip navigation links
-                    if (cls.includes('global-nav') || cls.includes('mega-nav') || cls.includes('footer') || cls.includes('tile__base')) continue;
+                    if (skipCls.some(s => cls.includes(s))) continue;
+                    const skipDomains = ['iltm.com','rxglobal','reedexpo','privacy','twitter','facebook','instagram','linkedin','youtube','google','onetrust','trademark','accessibility','legal'];
                     if (href.startsWith('mailto:') && !email)
                         email = href.replace('mailto:', '').split('?')[0].trim();
                     else if (href.startsWith('tel:') && !phone)
                         phone = href.replace('tel:', '').trim();
-                    else if (href.startsWith('http') && !href.includes('iltm.com') && !href.includes('rxglobal') && !href.includes('reedexpo') && !href.includes('privacy') && !href.includes('twitter') && !href.includes('facebook') && !href.includes('instagram') && !href.includes('linkedin') && !href.includes('youtube') && !href.includes('google') && !website)
+                    else if (href.startsWith('http') && !skipDomains.some(d => href.includes(d)) && !website)
                         website = href;
                 }
-
-                // Address and Country from COMPANY ADDRESS section
-                let address = '';
-                let country = '';
-                const bodyText = document.body.innerText;
-                const addrMarker = 'COMPANY ADDRESS';
-                const addrStart = bodyText.indexOf(addrMarker);
-                if (addrStart !== -1) {
-                    const afterMarker = bodyText.slice(addrStart + addrMarker.length);
-                    const endMarkers = ['FOLLOW US', 'STAND(S)', 'Recommended', 'CATEGORIES'];
-                    let endIdx = afterMarker.length;
-                    for (const m of endMarkers) {
-                        const idx = afterMarker.indexOf(m);
-                        if (idx !== -1 && idx < endIdx) endIdx = idx;
-                    }
-                    const addrBlock = afterMarker.slice(0, endIdx).trim();
-                    const addrLines = addrBlock.split('\n').map(l => l.trim()).filter(Boolean);
-                    address = addrLines.join(', ');
-                    if (addrLines.length > 0) country = addrLines[addrLines.length - 1];
-                }
-
-                return { website, email, phone, country, address };
+                return { website, email, phone };
             """)
+
+            # Extract address from page text in Python
+            body = driver.execute_script("return document.body.innerText;")
+            address = ""
+            marker = "COMPANY ADDRESS"
+            idx = body.find(marker)
+            if idx != -1:
+                after = body[idx + len(marker):]
+                end_markers = ["FOLLOW US", "STAND(S)", "Recommended", "CATEGORIES", "DOCUMENTS"]
+                end_idx = len(after)
+                for m in end_markers:
+                    i = after.find(m)
+                    if i != -1 and i < end_idx:
+                        end_idx = i
+                addr_block = after[:end_idx].strip()
+                addr_lines = [l.strip() for l in addr_block.split("\n") if l.strip()]
+                address = ", ".join(addr_lines)
+                country = addr_lines[-1] if addr_lines else ""
+                contact["address"] = address
+                contact["country"] = country
+
             return contact
 
         except Exception as e:
