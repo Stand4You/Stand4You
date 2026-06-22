@@ -40,13 +40,13 @@ def make_driver(headless: bool) -> webdriver.Chrome:
     opts.add_argument("--lang=fr-FR")
     opts.add_argument("--disable-dev-shm-usage")
     opts.add_argument("--disable-blink-features=AutomationControlled")
+    opts.page_load_strategy = "none"  # don't wait for full page load
     if headless:
         opts.add_argument("--headless=new")
 
     driver_path = ChromeDriverManager().install()
     service = Service(driver_path)
     driver = webdriver.Chrome(service=service, options=opts)
-    driver.set_page_load_timeout(25)
     driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
         "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
     })
@@ -110,11 +110,8 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
 
     for attempt in range(retries):
         try:
-            try:
-                driver.get(url)
-            except Exception:
-                pass  # page load timeout — continue with what loaded
-            time.sleep(random.uniform(0.8, 2.0))
+            driver.get(url)
+            time.sleep(random.uniform(2.5, 4.0))
 
             contact_found = False
             for sel in [
