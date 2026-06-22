@@ -133,9 +133,18 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
                 let address = '';
                 let country = '';
                 const bodyText = document.body.innerText;
-                const addrMatch = bodyText.match(/COMPANY ADDRESS[\s\S]{0,10}\n([\s\S]{0,300}?)(?:\n\n|FOLLOW US|STAND\(S\)|Recommended|$)/);
-                if (addrMatch) {
-                    const addrLines = addrMatch[1].trim().split('\\n').map(l => l.trim()).filter(Boolean);
+                const addrMarker = 'COMPANY ADDRESS';
+                const addrStart = bodyText.indexOf(addrMarker);
+                if (addrStart !== -1) {
+                    const afterMarker = bodyText.slice(addrStart + addrMarker.length);
+                    const endMarkers = ['FOLLOW US', 'STAND(S)', 'Recommended', 'CATEGORIES'];
+                    let endIdx = afterMarker.length;
+                    for (const m of endMarkers) {
+                        const idx = afterMarker.indexOf(m);
+                        if (idx !== -1 && idx < endIdx) endIdx = idx;
+                    }
+                    const addrBlock = afterMarker.slice(0, endIdx).trim();
+                    const addrLines = addrBlock.split('\n').map(l => l.trim()).filter(Boolean);
                     address = addrLines.join(', ');
                     if (addrLines.length > 0) country = addrLines[addrLines.length - 1];
                 }
