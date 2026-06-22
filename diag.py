@@ -11,7 +11,7 @@ opts.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 opts.add_argument("--no-sandbox")
 opts.add_argument("--no-first-run")
 opts.add_argument("--disable-dev-shm-usage")
-opts.add_argument("--user-data-dir=C:\\Temp\\chrome-diag4")
+opts.add_argument("--user-data-dir=C:\\Temp\\chrome-diag5")
 s = Service(r"C:\Users\raf\.wdm\drivers\chromedriver\win64\149.0.7827.155\chromedriver-win64\chromedriver.exe")
 d = webdriver.Chrome(service=s, options=opts)
 d.get("https://www.iltm.com/cannes/en-gb/exhibitor-directory.html")
@@ -21,36 +21,33 @@ try:
 except:
     print("no cookies banner")
 
-time.sleep(4)
+time.sleep(5)
 
-# Scroll down to trigger lazy loading
-print("Scrolling...")
-for i in range(5):
-    d.execute_script(f"window.scrollTo(0, {(i+1)*800})")
-    time.sleep(1.5)
+# Scroll to trigger lazy loading
+for i in range(8):
+    d.execute_script(f"window.scrollTo(0, {(i+1)*1000})")
+    time.sleep(1)
 
 time.sleep(3)
 
-# Look for exhibitor items
 result = d.execute_script("""
-    const allA = [...document.querySelectorAll('a')];
-    // Find links that look like exhibitor detail pages
-    const candidates = allA.filter(a => {
-        const href = a.href || '';
-        const text = a.textContent.trim();
-        return text.length > 2 && text.length < 100 && href.includes('iltm.com') &&
-               !href.includes('hub') && !href.includes('about') && !href.includes('contact') &&
-               !href.includes('login') && !href.includes('enquire') && !href.includes('.com/cannes/en-gb.html') &&
-               !href.includes('sustainability') && !href.includes('media') && !href.includes('programme');
-    });
+    // Check for iframes
+    const iframes = [...document.querySelectorAll('iframe')].map(f => f.src);
+
+    // Look for any element with exhibitor-related classes or data attributes
+    const allEls = [...document.querySelectorAll('[class*="exhibitor"], [data-exhibitor], [class*="Exhibitor"]')];
+
+    // Look for elements that might be list items (li, article, div with many siblings)
+    const articles = [...document.querySelectorAll('article, [role="listitem"], li')].slice(0, 5);
+
+    // Get page height to see if content loaded
+    const pageHeight = document.body.scrollHeight;
+
     return {
-        total_links: allA.length,
-        candidate_count: candidates.length,
-        sample: candidates.slice(0, 5).map(a => ({
-            href: a.href,
-            text: a.textContent.trim().slice(0, 60),
-            cls: a.className.slice(0, 60)
-        }))
+        iframes: iframes,
+        exhibitor_els: allEls.slice(0,5).map(e => ({tag:e.tagName, cls:e.className.slice(0,60), text:e.textContent.trim().slice(0,80)})),
+        articles: articles.map(e => ({tag:e.tagName, cls:e.className.slice(0,60), text:e.textContent.trim().slice(0,60)})),
+        page_height: pageHeight
     };
 """)
 print(json.dumps(result, indent=2))
