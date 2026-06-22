@@ -121,7 +121,7 @@ def extract_contact(driver, url: str, retries: int = 2) -> dict:
                     const href = a.href || '';
                     const cls = a.className || '';
                     if (skipCls.some(s => cls.includes(s))) continue;
-                    const skipDomains = ['iltm.com','rxglobal','reedexpo','privacy','twitter','facebook','instagram','linkedin','youtube','google','onetrust','trademark','accessibility','legal','pub-mediabox','rxweb-prd'];
+                    const skipDomains = ['iltm.com','rxglobal','reedexpo','privacy','twitter','x.com','facebook','instagram','linkedin','youtube','google','onetrust','trademark','accessibility','legal','pub-mediabox','rxweb-prd','wtm.com','ibtm','igtm'];
                     if (href.startsWith('mailto:') && !email)
                         email = href.replace('mailto:', '').split('?')[0].trim();
                     else if (href.startsWith('tel:') && !phone)
