@@ -106,57 +106,54 @@ def extract_list(driver) -> list[dict]:
 
 
 def extract_contact(driver, url: str, retries: int = 2) -> dict:
-    contact = {"website": "", "email": "", "phone": ""}
+    contact = {"website": "", "email": "", "phone": "", "country": "", "address": ""}
 
     for attempt in range(retries):
         try:
             driver.get(url)
             time.sleep(random.uniform(2.5, 4.0))
 
-            contact_found = False
-            for sel in [
-                ".exhibitor-details-contact-us-links",
-                ".exhibitor-details-contact",
-                "[class*='contact-us']",
-                ".exhibitor-contact",
-            ]:
-                try:
-                    WebDriverWait(driver, 10).until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, sel))
-                    )
-                    contact_found = True
-                    break
-                except TimeoutException:
-                    continue
-
-            if not contact_found:
-                print(f"    [warn] Bloc contact introuvable: {url}")
-                return contact
-
             contact = driver.execute_script("""
-                const selectors = [
-                    '.exhibitor-details-contact-us-links',
-                    '.exhibitor-details-contact',
-                    '[class*="contact-us"]',
-                    '.exhibitor-contact',
-                ];
-                let container = document.body;
-                for (const sel of selectors) {
-                    const el = document.querySelector(sel);
-                    if (el) { container = el; break; }
-                }
-                const links = [...container.querySelectorAll('a[href]')];
+                const links = [...document.querySelectorAll('a[href]')];
                 let website = '', email = '', phone = '';
                 for (const a of links) {
                     const href = a.href || '';
+                    const cls = a.className || '';
+                    // skip navigation links
+                    if (cls.includes('global-nav') || cls.includes('mega-nav') || cls.includes('footer') || cls.includes('tile__base')) continue;
                     if (href.startsWith('mailto:') && !email)
                         email = href.replace('mailto:', '').split('?')[0].trim();
                     else if (href.startsWith('tel:') && !phone)
                         phone = href.replace('tel:', '').trim();
-                    else if (href.startsWith('http') && !href.includes('iltm.com') && !website)
+                    else if (href.startsWith('http') && !href.includes('iltm.com') && !href.includes('rxglobal') && !href.includes('reedexpo') && !href.includes('privacy') && !href.includes('twitter') && !href.includes('facebook') && !href.includes('instagram') && !href.includes('linkedin') && !href.includes('youtube') && !href.includes('google') && !website)
                         website = href;
                 }
-                return { website, email, phone };
+
+                // Country: inside category list
+                let country = '';
+                const labels = [...document.querySelectorAll('[class*="category"], [class*="detail-label"], dt, th')];
+                for (const el of labels) {
+                    if (el.textContent.trim() === 'Country of Origin') {
+                        const next = el.nextElementSibling || el.parentElement?.nextElementSibling;
+                        if (next) { country = next.textContent.trim(); break; }
+                    }
+                }
+                // Fallback: look for country in the categories section text
+                if (!country) {
+                    const body = document.body.innerText;
+                    const m = body.match(/Country of Origin[\\s\\S]{0,5}\\n([^\\n]+)/);
+                    if (m) country = m[1].trim();
+                }
+
+                // Address: COMPANY ADDRESS section
+                let address = '';
+                const bodyText = document.body.innerText;
+                const addrMatch = bodyText.match(/COMPANY ADDRESS[\\s\\S]{0,10}\\n([\\s\\S]{0,200}?)(?:\\n\\n|FOLLOW US|STAND|$)/);
+                if (addrMatch) {
+                    address = addrMatch[1].trim().replace(/\\n+/g, ', ');
+                }
+
+                return { website, email, phone, country, address };
             """)
             return contact
 
@@ -223,7 +220,7 @@ def main():
     finally:
         driver.quit()
 
-    fieldnames = ["name", "stand", "detail_url", "website", "email", "phone"]
+    fieldnames = ["name", "country", "website", "email", "phone", "address"]
     out_path = Path(args.output)
     with out_path.open("w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
