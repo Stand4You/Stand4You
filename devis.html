@@ -366,7 +366,7 @@ const st={
   ctx:{num:'',dateEmission:todayStr(),validite:'7',
     cliSociete:'',cliContact:'',cliEmail:'',cliAdresse:'',cliTVA:'',cliNature:'fr',
     salonNom:'',salonLieu:'',salonDates:'',salonSurface:'',
-    coutFournisseurHT:'',
+    coutFournisseurHT:'',cliLogoBase64:'',
     ctxOpen:true,
     /* Airtable record IDs pour liens */
     _atRecordId:null,_atClientId:null,_atEvtId:null,_atProjetId:null
@@ -540,6 +540,13 @@ async function loadDocuments(){
     });
   }catch(e){console.warn('[loadDocuments] échec:',e.message);}
 }
+async function imgToBase64(url){
+  try{
+    const resp=await fetch(url);
+    const blob=await resp.blob();
+    return await new Promise(resolve=>{const r=new FileReader();r.onloadend=()=>resolve(r.result);r.readAsDataURL(blob);});
+  }catch(e){return'';}
+}
 async function atLoadLinked(devis){
   if(devis.CLIENT_Nom&&devis.CLIENT_Nom.length){
     const clientRecId=Array.isArray(devis.CLIENT_Nom)?devis.CLIENT_Nom[0]:devis.CLIENT_Nom;
@@ -551,6 +558,13 @@ async function atLoadLinked(devis){
       st.ctx.cliAdresse=cf.Adresse||'';
       st.ctx.cliTVA=cf.Numero_TVA||'';
       st.ctx._atClientId=clientRecId;
+      if(cf.Logo&&cf.Logo.length){
+        try{
+          const entry=cf.Logo[0];
+          const url=(entry.thumbnails&&entry.thumbnails.large)?entry.thumbnails.large.url:entry.url;
+          st.ctx.cliLogoBase64=await imgToBase64(url);
+        }catch(e){st.ctx.cliLogoBase64='';console.warn('[logo]',e.message);}
+      }
     }
   }
   let projRecId=null;
@@ -573,7 +587,9 @@ async function atLoadLinked(devis){
         const pid=Array.isArray(ef.Projet)?ef.Projet[0]:ef.Projet;
         if(typeof pid==='string'&&pid.startsWith('rec'))projRecId=pid;
       }
-      if(ef.Salon&&ef.Salon.length){
+      if(ef.Adresse){
+        st.ctx.salonLieu=ef.Adresse;
+      } else if(ef.Salon&&ef.Salon.length){
         const salonRecId=Array.isArray(ef.Salon)?ef.Salon[0]:ef.Salon;
         if(salonRecId.startsWith('rec')){
           const sf=await atGet(TBL_SALON,salonRecId);
@@ -808,7 +824,7 @@ function restoreState(data){
   st.legal=data.legal||JSON.parse(JSON.stringify(LEGAL_DEF));
   st.fraisGestion=data.fraisGestion||false;
   st.fraisGestionDesc=data.fraisGestionDesc||'';
-  st.ctx=Object.assign({ctxOpen:false,_atRecordId:null,_atClientId:null,_atEvtId:null,_atProjetId:null,cliTVA:'',coutFournisseurHT:''},data.ctx);
+  st.ctx=Object.assign({ctxOpen:false,_atRecordId:null,_atClientId:null,_atEvtId:null,_atProjetId:null,cliTVA:'',coutFournisseurHT:'',cliLogoBase64:''},data.ctx);
   st.status=data.status||'brouillon';
   st.savedAt=data.savedAt||null;
   st._atMode=data._atMode||false;
@@ -948,6 +964,7 @@ function ctxHTML(){
     ${c.ctxOpen?`<div class="context-body">
       <div class="ctx-group">
         <h4>${t('clientSociete')}</h4>
+        ${c.cliLogoBase64?`<div style="margin-bottom:8px"><img src="${c.cliLogoBase64}" style="max-height:48px;max-width:140px;object-fit:contain;display:block"></div>`:''}
         <div class="ctx-field"><label>${t('clientSociete')}</label><input type="text" value="${esc(c.cliSociete)}" placeholder="" ${frozenUI||atRo?'readonly':''} oninput="uCtx('cliSociete',this.value);scheduleSave()">${atRo?atSrcTag():''}</div>
         <div class="ctx-field"><label>${t('clientAdresse')}</label><input type="text" value="${esc(c.cliAdresse)}" placeholder="" ${frozenUI||atRo?'readonly':''} oninput="uCtx('cliAdresse',this.value);scheduleSave()">${atRo?atSrcTag():''}</div>
         <div class="ctx-field"><label>${t('clientContact')}</label><input type="text" value="${esc(c.cliContact)}" placeholder="" ${frozenUI||atRo?'readonly':''} oninput="uCtx('cliContact',this.value);scheduleSave()">${atRo?atSrcTag():''}</div>
@@ -1571,6 +1588,7 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
   ${(c.cliSociete||c.salonNom)?`<div class="info-strip">
     <div class="info-group">
       <h5>${isEn?'Client':'Client'}</h5>
+      ${c.cliLogoBase64?`<img src="${c.cliLogoBase64}" style="max-height:40px;max-width:120px;object-fit:contain;display:block;margin-bottom:5px">`:''}
       <p><strong>${esc(c.cliSociete||'—')}</strong>${c.cliContact?`<br>${isEn?'Att.':'Att :'} ${esc(c.cliContact)}`:''}${c.cliAdresse?`<br>${esc(c.cliAdresse)}`:''}${c.cliTVA?`<br>N° TVA : ${esc(c.cliTVA)}`:''}</p>
     </div>
     <div class="info-group">
