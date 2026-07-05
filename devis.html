@@ -270,8 +270,8 @@ fr:{
   accepteWebhook:'Devis accepté — envoi vers Pennylane…',
   fraisGestionTitle:'Gestion & Approvisionnement pour le compte du client',fgToggle:'+ Ajouter Gestion & Approvisionnement',fgNote:'* hors Gestion & Approvisionnement pour le compte du client',
   psToggle:'+ Ajouter options fin de salon',psTitle:'Options fin de salon',
-  psDestruction:'Déstockage & destruction du stand',psStockage:'Conservation du stand — stockage (1 an)',
-  psNote:'** hors Options de fin de salon facturée à l\'issue du salon',psSurDevis:'Sur devis',
+  psDestruction:'Déstockage & destruction du stand',psStockage:'Conservation du stand',
+  psNote:'** hors Option obligatoire de fin de salon facturée en sus',psSurDevis:'Sur devis',
 },
 en:{
   typeDevis:'Quote type',tabN:'New stand',tabR:'Re-installation',tabS:'Storage',tabM:'Furniture',
@@ -309,8 +309,8 @@ en:{
   accepteWebhook:'Quote accepted — sending to Pennylane…',
   fraisGestionTitle:'Management & Procurement on behalf of the client',fgToggle:'+ Add Management & Procurement',fgNote:'* excl. Management & Procurement on behalf of the client',
   psToggle:'+ Add post-show options',psTitle:'Post-show options',
-  psDestruction:'De-installation & stand disposal',psStockage:'Stand conservation — storage (1 year)',
-  psNote:'** excl. post-show options invoiced after the show',psSurDevis:'To be quoted',
+  psDestruction:'De-installation & stand disposal',psStockage:'Stand conservation',
+  psNote:'** excl. mandatory post-show option invoiced additionally',psSurDevis:'To be quoted',
 }};
 function t(k){return(TR[st.lang]&&TR[st.lang][k]!=null?TR[st.lang][k]:(TR.fr[k]||k));}
 
@@ -1495,7 +1495,7 @@ function buildPDF(){
   const fgAmtStr=isEn?'Actual cost + Mgmt fees':'Coût réel + Frais de gestion';
   const fgRows=st.fraisGestion?`<tbody><tr class="fg-sr"><td class="fg-cn">*</td><td class="fg-cm">${t('fraisGestionTitle')}${st.fraisGestionDesc?`<span class="id">${esc(st.fraisGestionDesc).replace(/\n/g,'<br>')}</span>`:''}</td><td class="fg-ca">${fgAmtStr}</td></tr></tbody>`:'';
   const psActive=st.postSalon&&(st.postSalonDestruction||st.postSalonStockage);
-  const mkPsLine=(chkF,mtF,descF,label)=>{if(!st[chkF])return'';const mt=parseFloat(st[mtF]);const amtStr=mt>0?`(${fmt(mt)} € HT)`:t('psSurDevis');return`<span class="id">${label}${st[descF]?` — ${esc(st[descF])}`:''} — ${amtStr}</span>`;};
+  const mkPsLine=(chkF,mtF,descF,label)=>{if(!st[chkF])return'';const mt=parseFloat(st[mtF]);const amtStr=mt>0?`(${fmt(mt)} HT)`:t('psSurDevis');return`<div class="ps-sub"><span class="ps-sublabel">${label}${st[descF]?` — ${esc(st[descF])}`:''}</span><span class="ps-subamt">${amtStr}</span></div>`;};
   const psRows=psActive?`<tbody><tr class="ps-sr"><td class="ps-cn">**</td><td class="ps-cm">${t('psTitle')}${mkPsLine('postSalonDestruction','postSalonDestructionMt','postSalonDestructionDesc',t('psDestruction'))}${mkPsLine('postSalonStockage','postSalonStockageMt','postSalonStockageDesc',t('psStockage'))}</td><td class="ps-ca"></td></tr></tbody>`:'';
   const fgStar=st.fraisGestion?'*':'';
   const pdfStarStr=fgStar+(psActive?' **':'');
@@ -1593,6 +1593,9 @@ tr.ps-sr td{background:rgba(59,130,246,.08);border-top:0.5px solid rgba(59,130,2
 td.ps-cn{font-family:'Cormorant Garamond',serif;font-weight:700;color:#3B82F6;width:28px;font-size:11px;vertical-align:top;padding-top:7px}
 td.ps-cm{font-style:italic;color:var(--navy)}
 td.ps-ca{width:0;padding:0}
+div.ps-sub{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:10px;font-style:italic;color:#6B7280;margin-top:3px;line-height:1.4}
+span.ps-sublabel{flex:1}
+span.ps-subamt{white-space:nowrap;color:#3B82F6;font-weight:600;font-size:11px}
 td.cn{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:700;color:var(--gold);width:22px;font-size:16px}
 td.ca{text-align:right;white-space:nowrap}
 tr.ir td{padding:2px 8px 2px 24px;border-bottom:0.5px solid rgba(13,27,42,.04);break-inside:avoid}
