@@ -271,7 +271,7 @@ fr:{
   fraisGestionTitle:'Gestion & Approvisionnement pour le compte du client',fgToggle:'+ Ajouter Gestion & Approvisionnement',fgNote:'* hors Gestion & Approvisionnement pour le compte du client',
   psToggle:'+ Ajouter une option de fin de salon',psTitle:'Option de fin de salon',
   psDestruction:'Déstockage & destruction du stand',psStockage:'Conservation du stand',
-  psNote:'** hors Option de fin de salon obligatoirement facturée en sus',psSurDevis:'Sur devis',
+  psNote:'** hors Option de fin de salon facturée en sus',psSurDevis:'Sur devis',
 },
 en:{
   typeDevis:'Quote type',tabN:'New stand',tabR:'Re-installation',tabS:'Storage',tabM:'Furniture',
@@ -310,7 +310,7 @@ en:{
   fraisGestionTitle:'Management & Procurement on behalf of the client',fgToggle:'+ Add Management & Procurement',fgNote:'* excl. Management & Procurement on behalf of the client',
   psToggle:'+ Add a post-show option',psTitle:'Post-show option',
   psDestruction:'De-installation & stand disposal',psStockage:'Stand conservation',
-  psNote:'** excl. post-show option, mandatorily invoiced additionally',psSurDevis:'To be quoted',
+  psNote:'** excl. post-show option invoiced additionally',psSurDevis:'To be quoted',
 }};
 function t(k){return(TR[st.lang]&&TR[st.lang][k]!=null?TR[st.lang][k]:(TR.fr[k]||k));}
 
@@ -1595,7 +1595,7 @@ td.ps-cm{font-style:italic;color:var(--navy)}
 td.ps-ca{width:0;padding:0}
 div.ps-sub{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:10px;font-style:italic;color:#6B7280;margin-top:3px;line-height:1.4}
 span.ps-sublabel{flex:1}
-span.ps-subamt{white-space:nowrap;color:#3B82F6;font-weight:600;font-size:11px}
+span.ps-subamt{white-space:nowrap;color:#6B7280;font-style:italic;font-size:10px}
 td.cn{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:700;color:var(--gold);width:22px;font-size:16px}
 td.ca{text-align:right;white-space:nowrap}
 tr.ir td{padding:2px 8px 2px 24px;border-bottom:0.5px solid rgba(13,27,42,.04);break-inside:avoid}
