@@ -271,7 +271,7 @@ fr:{
   fraisGestionTitle:'Gestion & Approvisionnement pour le compte du client',fgToggle:'+ Ajouter Gestion & Approvisionnement',fgNote:'* hors Gestion & Approvisionnement pour le compte du client',
   psToggle:'+ Ajouter options fin de salon',psTitle:'Options fin de salon',
   psDestruction:'Déstockage & destruction du stand',psStockage:'Conservation du stand — stockage (1 an)',
-  psNote:'** l\'une de ces options post-salon sera obligatoirement facturée séparément à l\'issue du salon',psSurDevis:'Sur devis',
+  psNote:'** hors Options de fin de salon facturée à l\'issue du salon',psSurDevis:'Sur devis',
 },
 en:{
   typeDevis:'Quote type',tabN:'New stand',tabR:'Re-installation',tabS:'Storage',tabM:'Furniture',
@@ -310,7 +310,7 @@ en:{
   fraisGestionTitle:'Management & Procurement on behalf of the client',fgToggle:'+ Add Management & Procurement',fgNote:'* excl. Management & Procurement on behalf of the client',
   psToggle:'+ Add post-show options',psTitle:'Post-show options',
   psDestruction:'De-installation & stand disposal',psStockage:'Stand conservation — storage (1 year)',
-  psNote:'** one of these post-show options will be invoiced separately after the show',psSurDevis:'To be quoted',
+  psNote:'** excl. post-show options invoiced after the show',psSurDevis:'To be quoted',
 }};
 function t(k){return(TR[st.lang]&&TR[st.lang][k]!=null?TR[st.lang][k]:(TR.fr[k]||k));}
 
@@ -1493,10 +1493,10 @@ function buildPDF(){
 
   const lblock=(title,raw)=>`<div class="ls"><div class="lt">${title}</div><div class="lb">${(raw||'').split('\n\n').map(p=>`<p class="lp">${esc(p).replace(/\n/g,'<br>')}</p>`).join('')}</div></div>`;
   const fgAmtStr=isEn?'Actual cost + Mgmt fees':'Coût réel + Frais de gestion';
-  const fgRows=st.fraisGestion?`<tbody><tr class="fg-sr"><td class="fg-cn">★</td><td class="fg-cm">${t('fraisGestionTitle')}${st.fraisGestionDesc?`<span class="id">${esc(st.fraisGestionDesc).replace(/\n/g,'<br>')}</span>`:''}</td><td class="fg-ca">${fgAmtStr}</td></tr></tbody>`:'';
+  const fgRows=st.fraisGestion?`<tbody><tr class="fg-sr"><td class="fg-cn">*</td><td class="fg-cm">${t('fraisGestionTitle')}${st.fraisGestionDesc?`<span class="id">${esc(st.fraisGestionDesc).replace(/\n/g,'<br>')}</span>`:''}</td><td class="fg-ca">${fgAmtStr}</td></tr></tbody>`:'';
   const psActive=st.postSalon&&(st.postSalonDestruction||st.postSalonStockage);
-  const mkPsRow=(chkF,mtF,descF,label)=>{if(!st[chkF])return'';const mt=parseFloat(st[mtF]);const amtStr=mt>0?fmt(mt):t('psSurDevis');return`<tr class="ps-sr"><td class="ps-cn">◆</td><td class="ps-cm">${label}${st[descF]?`<span class="id">${esc(st[descF])}</span>`:''}</td><td class="ps-ca">${amtStr}</td></tr>`;};
-  const psRows=psActive?`<tbody>${mkPsRow('postSalonDestruction','postSalonDestructionMt','postSalonDestructionDesc',t('psDestruction'))}${mkPsRow('postSalonStockage','postSalonStockageMt','postSalonStockageDesc',t('psStockage'))}</tbody>`:'';
+  const mkPsLine=(chkF,mtF,descF,label)=>{if(!st[chkF])return'';const mt=parseFloat(st[mtF]);const amtStr=mt>0?`(${fmt(mt)} € HT)`:t('psSurDevis');return`<span class="id">${label}${st[descF]?` — ${esc(st[descF])}`:''} — ${amtStr}</span>`;};
+  const psRows=psActive?`<tbody><tr class="ps-sr"><td class="ps-cn">**</td><td class="ps-cm">${t('psTitle')}${mkPsLine('postSalonDestruction','postSalonDestructionMt','postSalonDestructionDesc',t('psDestruction'))}${mkPsLine('postSalonStockage','postSalonStockageMt','postSalonStockageDesc',t('psStockage'))}</td><td class="ps-ca"></td></tr></tbody>`:'';
   const fgStar=st.fraisGestion?'*':'';
   const pdfStarStr=fgStar+(psActive?' **':'');
 
@@ -1590,9 +1590,9 @@ td.fg-cn{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:70
 td.fg-cm{font-style:italic;color:var(--navy)}
 td.fg-ca{text-align:right;font-style:italic;color:var(--gold);font-size:14px;font-weight:700;white-space:nowrap}
 tr.ps-sr td{background:rgba(59,130,246,.08);border-top:0.5px solid rgba(59,130,246,.4);padding:6px 8px;font-size:12px;font-weight:500;break-inside:avoid;break-before:avoid}
-td.ps-cn{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:700;color:#3B82F6;width:22px;font-size:16px}
+td.ps-cn{font-family:'Cormorant Garamond',serif;font-weight:700;color:#3B82F6;width:28px;font-size:11px;vertical-align:top;padding-top:7px}
 td.ps-cm{font-style:italic;color:var(--navy)}
-td.ps-ca{text-align:right;font-style:italic;color:#3B82F6;font-size:14px;font-weight:700;white-space:nowrap}
+td.ps-ca{width:0;padding:0}
 td.cn{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:700;color:var(--gold);width:22px;font-size:16px}
 td.ca{text-align:right;white-space:nowrap}
 tr.ir td{padding:2px 8px 2px 24px;border-bottom:0.5px solid rgba(13,27,42,.04);break-inside:avoid}
