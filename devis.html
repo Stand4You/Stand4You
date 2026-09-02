@@ -755,7 +755,7 @@ async function atSave(){
     const statMap={brouillon:'Brouillon',envoye:'Envoyé',accepte:'Accepté',refuse:'Refusé',expire:'Expiré',annule:'Annulé'};
     let expiryDate='';
     try{const d=new Date(st.ctx.dateEmission);d.setDate(d.getDate()+(parseInt(st.ctx.validite)||7));expiryDate=d.toISOString().split('T')[0];}catch{}
-    const devisJSON=encodeURIComponent(JSON.stringify(st));
+    const devisJSON=JSON.stringify(st);
     /* safeFields : purement numériques / texte / date — ne peut jamais provoquer de 422 */
     const safeFields={
       'Devis_JSON':devisJSON,
