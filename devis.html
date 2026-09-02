@@ -767,8 +767,8 @@ async function atSave(){
       'Solde_Total':Math.round(solde*100)/100,
       'Validite_Jours':parseInt(st.ctx.validite)||7,
       'Frais_Gestion':!!st.fraisGestion,
-      ...(st.ctx.dateEmission?{'Date_Emission':st.ctx.dateEmission}:{}),
-      ...(expiryDate?{'Date_Expiration':expiryDate}:{})
+      ...(st.ctx.dateEmission?{'Date_Emission':st.ctx.dateEmission}:{})
+      /* Date_Expiration = formule Airtable (Date_Emission + Validite_Jours) — lecture seule, ne pas PATCH */
     };
     /* softFields : champs single-select — envoyés avec typecast:true pour forcer la création de l'option */
     const tvaMap={'fr':'France (TVA)','fr_na':'France (franchise TVA)','eu':'UE (autoliquidation)','eu_ht':'UE (TVA)','export':'Hors UE (hors champ)'};
@@ -793,8 +793,12 @@ async function atSave(){
     render();
   }catch(err){
     console.error('[atSave] échec :',err.message);
-    /* 422 = option single-select manquante dans Airtable — silencieux pour l'utilisateur */
-    if(!err.message.includes('422'))showBanner('error',t('atError')+err.message);
+    /* 422 = champ lecture seule ou option manquante — silencieux mais on efface la bannière */
+    if(err.message.includes('422')){
+      const el=document.getElementById('at-banner');if(el)el.style.display='none';
+    }else{
+      showBanner('error',t('atError')+err.message);
+    }
     setSavingDot(false);
   }
 }
