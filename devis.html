@@ -753,7 +753,9 @@ async function atSave(){
   try{
     const{ht,rmt,ap,ttc,acompte,solde}=calc();
     const statMap={brouillon:'Brouillon',envoye:'Envoyé',accepte:'Accepté',refuse:'Refusé',expire:'Expiré',annule:'Annulé'};
-    const devisJSON=JSON.stringify(st);
+    /* cliLogoBase64 peut faire 50–100 KB — exclure du JSON Airtable (re-fetché à chaque load) */
+    const stToSave={...st,ctx:{...st.ctx,cliLogoBase64:''}};
+    const devisJSON=JSON.stringify(stToSave);
     /* coreSafe : uniquement les champs garantis éditables — jamais de 422.
        Les totaux monétaires (Montant_HT, Total_TTC…) sont potentiellement des formules
        Airtable → déplacés dans extraFields (fire-and-forget). */
