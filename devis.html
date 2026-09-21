@@ -1016,6 +1016,7 @@ function ctxHTML(){
         <div class="ctx-field"><label>${t('devisDate')}</label><input type="date" value="${esc(c.dateEmission)}" ${frozenUI?'readonly':''} oninput="uCtx('dateEmission',this.value);scheduleSave()"></div>
         <div class="ctx-field"><label>${st.lang==='fr'?'Validité (jours)':'Valid for (days)'}</label><input type="number" value="${esc(c.validite)}" min="1" max="90" ${frozenUI?'readonly':''} oninput="uCtx('validite',this.value);scheduleSave()"></div>
         <div class="ctx-field"><label>${st.lang==='fr'?'Date d\'expiration':'Expiry date'}</label><input id="inp-expiry" type="date" value="${validDate()}" readonly>${atRo?atSrcTag():''}</div>
+        <div class="ctx-field"><label>${st.lang==='fr'?'Émetteur du devis':'Quote issuer'}</label><select ${frozenUI?'disabled':''} onchange="uCtx('_createdBy',this.value);scheduleSave()">${Object.keys(SIGNATAIRES).map(k=>`<option value="${k}"${(st.ctx._createdBy||'Raphaël Flipo')===k?' selected':''}>${k}</option>`).join('')}</select></div>
 
       </div>
     </div>`:''}
@@ -1208,7 +1209,7 @@ function totHTML(){
   const ment=st.tvaMode==='eu'?t('mentEU'):st.tvaMode==='export'?t('mentEXP'):'';
   const pct=parseFloat(st.acp)||0;
   const psActive=st.postSalon&&(st.postSalonDestruction||st.postSalonStockage);
-  const starStr=(st.fraisGestion?'*':'')+(psActive?' **':'');
+  const starStr=(st.fraisGestion?'*':'')+(psActive?' **':'');
   return`<div class="totals">
     <div id="row-ht-s" class="trow htmain" style="${hr?'display:none':''}"><span class="lbl">${t('totHT')}${starStr}</span><span id="vht-s">${fmt(ht)}</span></div>
     <div id="row-ht-av" class="trow" style="${hr?'':'display:none'}"><span class="lbl">${t('totHTav')}</span><span id="vht-av">${fmt(ht)}</span></div>
@@ -1310,7 +1311,7 @@ function margeBruteHTML(){
   if(!cout&&!ap)return'';
   const marge=ap-cout;
   const pct=cout>0?Math.round((marge/cout)*100*10)/10:null;
-  const pctTxt=pct!==null?(pct>0?'+':'')+pct.toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1})+' %':'—';
+  const pctTxt=pct!==null?(pct>0?'+':'')+pct.toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1})+' %':'—';
   return`<div class="marge-block np">
     <div style="display:flex;justify-content:space-between;align-items:baseline">
       <span style="font-size:13px;font-weight:600;color:#065f46">${st.lang==='en'?'Estimated gross margin':'Marge brute prévisionnelle'}</span>
@@ -1500,12 +1501,12 @@ function buildPDF(){
   const mkPsLine=(chkF,mtF,descF,label)=>{if(!st[chkF])return'';const mt=parseFloat(st[mtF]);const amtStr=mt>0?`(${fmt(mt)} HT)`:t('psSurDevis');return`<div class="ps-sub"><span class="ps-sublabel">${label}${st[descF]?` — ${esc(st[descF])}`:''}</span><span class="ps-subamt">${amtStr}</span></div>`;};
   const psRows=psActive?`<tbody><tr class="ps-sr"><td class="ps-cn">**</td><td class="ps-cm">${t('psTitle')}${mkPsLine('postSalonDestruction','postSalonDestructionMt','postSalonDestructionDesc',t('psDestruction'))}${mkPsLine('postSalonStockage','postSalonStockageMt','postSalonStockageDesc',t('psStockage'))}</td><td class="ps-ca"></td></tr></tbody>`:'';
   const fgStar=st.fraisGestion?'*':'';
-  const pdfStarStr=fgStar+(psActive?' **':'');
+  const pdfStarStr=fgStar+(psActive?' **':'');
 
   const tRows=`${!hr
     ?`<tr class="rm"><td class="tl">${t('totHT')}${pdfStarStr}</td><td class="tv">${fmt(ht)}</td></tr>`
     :`<tr><td class="tl">${t('totHTav')}</td><td class="tv">${fmt(ht)}</td></tr>
-      <tr><td class="tl">${t('remise')}${st.rt==='%'?` (${st.remise}\u00a0%)`:''}]</td><td class="tv">− ${fmt(rmt)}</td></tr>
+      <tr><td class="tl">${t('remise')}${st.rt==='%'?` (${st.remise}\u00a0%)`:''}</td><td class="tv">− ${fmt(rmt)}</td></tr>
       <tr class="ra"><td class="tl">${t('totHTap')}${pdfStarStr}</td><td class="tv">${fmt(ap)}</td></tr>`}
   ${isFR?`<tr><td class="tl">${t('tvaFR')}</td><td class="tv">${fmt(tva)}</td></tr><tr class="rt"><td class="tl">${t('totTTC')}</td><td class="tv">${fmt(ttc)}</td></tr>`
         :(st.tvaMode==='eu'||st.tvaMode==='fr_na'?`${ment?`<tr><td colspan="2" style="font-style:italic;font-size:9px;color:#6B7280;padding-top:3px;line-height:1.4">${ment}</td></tr>`:''}`:`<tr class="${!hr?'rt':'ra'}"><td class="tl">${t('totHT')}</td><td class="tv">${fmt(ap)}</td></tr>${ment?`<tr><td colspan="2" style="font-style:italic;font-size:9px;color:#6B7280;padding-top:3px;line-height:1.4">${ment}</td></tr>`:''}`)}
@@ -1513,7 +1514,7 @@ function buildPDF(){
   ${st.fraisGestion?`<tr><td colspan="2" style="font-size:9px;font-style:italic;color:#6B7280;padding-top:4px;line-height:1.4">${t('fgNote')}</td></tr>`:''}${psActive?`<tr><td colspan="2" style="font-size:9px;font-style:italic;color:#6B7280;padding-top:4px;line-height:1.4">${t('psNote')}</td></tr>`:''}` ;
 
   const acceptTxt=isEn
-    ?`By signing this quotation, the Client acknowledges having read and accepted without reservation the entirety of this offer and the General Terms and Conditions attached, permanently available upon request or at www.stand4you.com/cgv. The order will only be definitively recorded upon receipt of this document bearing the mention « Agreed & accepted » and payment of the deposit.`
+    ?`By signing this quotation, the Client acknowledges having read and accepted without reservation the entirety of this offer and the General Terms and Conditions attached, permanently available upon request or at www.stand4you.com/cgv. The order will only be definitively recorded upon receipt of this document bearing the mention « Agreed & accepted » and payment of the deposit.`
     :`En signant ce devis, le Client reconnaît avoir pris connaissance et accepté sans réserve l'intégralité des pages de la présente offre ainsi que les Conditions Générales de Prestations, Location et Vente jointes, accessibles en permanence sur demande ou à l'adresse www.stand4you.com/cgv. La commande ne sera définitivement enregistrée qu'à réception de ce document revêtu de la mention «\u00a0Bon pour accord\u00a0» et du règlement de l'acompte.`;
 
   const frCGV=`<div class="cgv-hdr">
@@ -1570,7 +1571,7 @@ html,body{background:#fff}
 body{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--navy);margin:0;padding:0}
 @page{size:A4 portrait;margin:16mm 14mm 20mm;}
 @page{@bottom-right{content:counter(page) " / " counter(pages);font-family:'DM Sans',sans-serif;font-size:8px;color:#9ca3af;}}
-@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:"SAS Stand 4 You · Capital social 5 000 € · SIRET 102 806 783 00019 · RCS Nice · N° TVA : FR 34102806783 · Code APE : 8230Z\\A Siège : 485, route de Saint-Sébastien – 06950 Falicon · contact@stand4you.com";font-family:'DM Sans',sans-serif;font-size:7.5px;color:#0D1B2A;text-align:center;white-space:pre;border-top:0.5px solid rgba(13,27,42,.18);padding-top:2mm;line-height:1.6;}}
+@page{@top-left{content:""}@top-center{content:""}@top-right{content:""}@bottom-left{content:""}@bottom-center{content:"SAS Stand 4 You · Capital social 5 000 € · SIRET 102 806 783 00019 · RCS Nice · N° TVA : FR 34102806783 · Code APE : 8230Z\\A Siège : 485, route de Saint-Sébastien – 06950 Falicon · contact@stand4you.com";font-family:'DM Sans',sans-serif;font-size:7.5px;color:#0D1B2A;text-align:center;white-space:pre;border-top:0.5px solid rgba(13,27,42,.18);padding-top:2mm;line-height:1.6;}}
 .wrap{padding:0;}
 @media print{.pb,.np{display:none!important}table.t,table.t>tbody{break-inside:auto!important;page-break-inside:auto!important}}
 .doc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:10px 14px;background:#0D1B2A;border-radius:8px;border-bottom:none}
@@ -1654,19 +1655,19 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
       </div>
     </div>
     <div class="doc-meta">
-      <div style="font-size:9px;font-weight:600;color:#F5F5F0;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">${t('emis')} : ${todayFmt}  |  ${t('valable')} : ${validDate()}</div>
+      <div style="font-size:9px;font-weight:600;color:#F5F5F0;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">${t('emis')} : ${todayFmt}  |  ${t('valable')} : ${validDate()}</div>
     </div>
   </div>
 
   <div style="text-align:center;padding:14px 0 10px;border-bottom:2px solid var(--gold);margin-bottom:14px">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);letter-spacing:.12em;text-transform:uppercase">${t('titleDoc')}${c.num?` — N° ${esc(c.num)}`:''}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);letter-spacing:.12em;text-transform:uppercase">${t('titleDoc')}${c.num?` — N° ${esc(c.num)}`:''}</div>
     <div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:.04em;margin-top:4px;font-style:italic">${(()=>{const sm={r:isEn?'Complete exhibition stand refurbishment (restocking, adaptation, rental, installation and dismantling)':"Remontage complet de stand d'exposition (déstockage, adaptation, location, installation et démontage)",s:isEn?'Exhibition stand element storage (warehousing, handling, maintenance)':"Conservation d'éléments de stand d'exposition (stockage, manutention, maintenance)",m:isEn?'Supply of exhibition stand furniture & accessories':"Fourniture de mobiliers & accessoires de stand d'exposition"};return sm[st.type]||t('subtitle');})()}</div>
   </div>
   ${(c.cliSociete||c.salonNom)?`<div class="info-strip">
     <div class="info-group">
       <h5>${isEn?'Client':'Client'}</h5>
       ${c.cliLogoBase64?`<img src="${c.cliLogoBase64}" style="max-height:40px;max-width:120px;object-fit:contain;display:block;margin-bottom:5px">`:''}
-      <p><strong>${esc(c.cliSociete||'—')}</strong>${c.cliContact?`<br>${isEn?'Att.':'Att :'} ${esc(c.cliContact)}`:''}${c.cliAdresse?`<br>${esc(c.cliAdresse)}`:''}${c.cliTVA?`<br>N° TVA : ${esc(c.cliTVA)}`:''}</p>
+      <p><strong>${esc(c.cliSociete||'—')}</strong>${c.cliContact?`<br>${isEn?'Att.':'Att :'} ${esc(c.cliContact)}`:''}${c.cliAdresse?`<br>${esc(c.cliAdresse)}`:''}${c.cliTVA?`<br>N° TVA : ${esc(c.cliTVA)}`:''}</p>
     </div>
     <div class="info-group">
       <h5>${isEn?'Show / Project':'Salon / Projet'}</h5>
@@ -1714,7 +1715,7 @@ function checkAlerts(){
 function printD(){
   const alerts=checkAlerts();
   if(alerts.length){
-    const msg=(st.lang==='en'?'Missing information:\n':'Informations manquantes\u00a0:\n')+alerts.map(a=>'• '+a).join('\n')+'\n\n'+(st.lang==='en'?'Generate PDF anyway?':'Générer le PDF quand même ?');
+    const msg=(st.lang==='en'?'Missing information:\n':'Informations manquantes\u00a0:\n')+alerts.map(a=>'• '+a).join('\n')+'\n\n'+(st.lang==='en'?'Generate PDF anyway?':'Générer le PDF quand même ?');
     if(!confirm(msg))return;
   }
   const win=window.open('','_blank','width=980,height=800,scrollbars=yes,resizable=yes');
