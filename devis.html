@@ -235,7 +235,7 @@ function getSig(){return SIGNATAIRES[st.ctx._createdBy]||null;}
 /* ═══ TRANSLATIONS ═══ */
 const TR={
 fr:{
-  typeDevis:'Type de devis',tabN:'Nouveau stand',tabR:'Remontage',tabS:'Stockage',tabM:'Mobilier',
+  typeDevis:'Type de devis',tabN:'Nouveau stand',tabR:'Remontage',tabS:'Stockage',tabM:'Prestation ponctuelle',
   cat:'Catégorie',addPrest:'+ Ajouter une prestation',
   mHT:'Montant HT',offert:'Offert',offBadge:'OFFERT',
   totHTav:'Total HT avant remise',totHT:'Total HT',remise:'Remise',
@@ -274,7 +274,7 @@ fr:{
   psNote:'** hors Option de fin de salon facturée en sus',psSurDevis:'Sur devis',
 },
 en:{
-  typeDevis:'Quote type',tabN:'New stand',tabR:'Re-installation',tabS:'Storage',tabM:'Furniture',
+  typeDevis:'Quote type',tabN:'New stand',tabR:'Re-installation',tabS:'Storage',tabM:'Standalone service',
   cat:'Category',addPrest:'+ Add a service',
   mHT:'Amount excl. VAT',offert:'Complimentary',offBadge:'COMPLIMENTARY',
   totHTav:'Total excl. VAT before discount',totHT:'Total excl. VAT',remise:'Discount',
@@ -1661,7 +1661,7 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
 
   <div style="text-align:center;padding:14px 0 10px;border-bottom:2px solid var(--gold);margin-bottom:14px">
     <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);letter-spacing:.12em;text-transform:uppercase">${t('titleDoc')}${c.num?` — N° ${esc(c.num)}`:''}</div>
-    <div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:.04em;margin-top:4px;font-style:italic">${(()=>{const sm={r:isEn?'Complete exhibition stand refurbishment (restocking, adaptation, rental, installation and dismantling)':"Remontage complet de stand d'exposition (déstockage, adaptation, location, installation et démontage)",s:isEn?'Exhibition stand element storage (warehousing, handling, maintenance)':"Conservation d'éléments de stand d'exposition (stockage, manutention, maintenance)",m:isEn?'Supply of exhibition stand furniture & accessories':"Fourniture de mobiliers & accessoires de stand d'exposition"};return sm[st.type]||t('subtitle');})()}</div>
+    <div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:.04em;margin-top:4px;font-style:italic">${(()=>{const sm={r:isEn?'Complete exhibition stand refurbishment (restocking, adaptation, rental, installation and dismantling)':"Remontage complet de stand d'exposition (déstockage, adaptation, location, installation et démontage)",s:isEn?'Exhibition stand element storage (warehousing, handling, maintenance)':"Conservation d'éléments de stand d'exposition (stockage, manutention, maintenance)",m:isEn?'Supply of furniture, signage & event services':"Fourniture de mobilier, signalétique & prestations événementielles"};return sm[st.type]||t('subtitle');})()}</div>
   </div>
   ${(c.cliSociete||c.salonNom)?`<div class="info-strip">
     <div class="info-group">
