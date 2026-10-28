@@ -578,6 +578,8 @@ async function atLoadLinked(devis){
       st.ctx.cliEmail=cf.Contact_Email||'';
       st.ctx.cliAdresse=cf.Adresse||'';
       st.ctx.cliTVA=cf.Numero_TVA||'';
+      st.ctx._cliNatureTVA=cf.Nature_TVA||'';
+      st.ctx._cliLangue=cf.Langue||'';
       st.ctx._atClientId=clientRecId;
       if(cf.Logo&&cf.Logo.length){
         try{
@@ -598,7 +600,7 @@ async function atLoadLinked(devis){
     const evtRecId=Array.isArray(devis.EVENEMENT)?devis.EVENEMENT[0]:devis.EVENEMENT;
     if(evtRecId.startsWith('rec')){
       const ef=await atGet(TBL_EVNT,evtRecId);
-      st.ctx.salonNom=devis.Evenement?String(devis.Evenement):(ef.Fx_Nom||'');
+      st.ctx.salonNom=ef.Fx_Nom||'';
       const d1=ef.Date_Debut?new Date(ef.Date_Debut).toLocaleDateString('fr-FR'):null;
       const d2=ef.Date_Fin?new Date(ef.Date_Fin).toLocaleDateString('fr-FR'):null;
       st.ctx.salonDates=d1&&d2?`${d1} – ${d2}`:d1||'';
@@ -619,11 +621,18 @@ async function atLoadLinked(devis){
       }
     }
   }
-  if(!st.ctx.salonNom&&devis.Evenement)st.ctx.salonNom=String(devis.Evenement);
   /* Coût fournisseur HT depuis la table Projet */
   if(projRecId){
     try{
       const pf=await atGet(TBL_PROJET,projRecId);
+      /* Type (Salon B2B / Projet évènementiel) et Nature (Stand nouveau, remontage, Stockage, Pop-up store, Prestation ponctuelle) viennent du projet */
+      st.ctx._projType=pf.Type||'';
+      st.ctx._projNature=pf.Nature||'';
+      if(pf.Type==='Projet évènementiel'&&pf.Projet_Nom)st.ctx.salonNom=String(pf.Projet_Nom);
+      /* Dates de prestation du projet (saisie manuelle prioritaire, sinon dates de l'édition de salon) : absentes du devis si vides */
+      {const fd=v=>v?new Date(v).toLocaleDateString('fr-FR'):null;
+       const p1=fd(pf.Date_Debut),p2=fd(pf.Date_Fin);
+       if(p1||p2)st.ctx.salonDates=p1&&p2&&p1!==p2?`${p1} – ${p2}`:(p1||p2);}
       if(pf['Fx_Coût_Fournisseur_HT']!=null)st.ctx.coutFournisseurHT=String(pf['Fx_Coût_Fournisseur_HT']);
       st.ctx._atProjetId=projRecId;
     }catch(e){console.warn('[atLoadLinked] projet:',e.message);}
@@ -700,22 +709,25 @@ async function atLoad(recordId){
     /* Champs de première création : éditables et synchronisés sur save */
     if(devis['Surface_(m2)'])st.ctx.salonSurface=String(devis['Surface_(m2)']);
     if(devis.Validite_Jours)st.ctx.validite=String(devis.Validite_Jours);
-    const rawRegime=devis.Regime_TVA||'';
+    const rawRegime=devis.Regime_TVA||st.ctx._cliNatureTVA||'';
     if(rawRegime){
       const rmap={'UE (autoliquidation)':'eu','UE (TVA)':'eu_ht','Hors UE (hors champ)':'export','Export hors UE':'export','France (TVA)':'fr','France (franchise TVA)':'fr_na'};
       st.tvaMode=rmap[rawRegime]||'fr';
     }
     st.ctx.cliNature=st.tvaMode;
+    /* Langue : celle du devis si déjà renseignée, sinon celle du client (« Anglais » ou « en » → anglais) */
+    {const rawLang=String([].concat(devis.Langue||st.ctx._cliLangue||'')[0]).toLowerCase();
+     st.lang=(rawLang==='anglais'||rawLang==='en')?'en':'fr';}
     /* Valeurs par défaut création */
     st.acp='70';
     st.remise='0';
 
     /* Applique le type depuis le champ Airtable "Type" (nouveau devis sans JSON) */
-    const rawT=(devis.Type||'').toString()
+    const rawT=(st.ctx._projNature||[].concat(devis.PROJET_Nature||[])[0]||'').toString()
       .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
     const tMap={
       'stand (nouveau)':'n','stand (remontage)':'r',
-      'stockage':'s','mobilier':'m',
+      'stockage':'s','mobilier':'m','prestation ponctuelle':'m','pop-up store':'n',
       n:'n',r:'r',s:'s',m:'m'
     };
     if(tMap[rawT])st.type=tMap[rawT];
@@ -777,7 +789,7 @@ async function atSave(){
       'Acompte_Total':Math.round(acompte*100)/100,
       'Solde_Total':Math.round(solde*100)/100,
       'Statut':statMap[st.status]||'Brouillon',
-      'Langue':st.lang,
+      'Langue':st.lang==='en'?'Anglais':'Français',
       'Regime_TVA':tvaMap[st.tvaMode]||st.tvaMode,
       ...(st.ctx.salonSurface&&st.type!=='s'&&st.type!=='m'?{'Surface_(m2)':parseFloat(st.ctx.salonSurface)}:{})
     };
@@ -1365,6 +1377,26 @@ function render(){
 
 /* ═══ HANDLERS ═══ */
 function togD(lid){dopen[lid]=!dopen[lid];render();}
+
+/* Titre du devis : dépend du Type du projet (Salon B2B / Projet évènementiel) et de la Nature (via st.type n/r/s/m + Pop-up store) */
+function docSubtitle(isEn){
+  const ev=st.ctx._projType==='Projet évènementiel';
+  const popup=st.ctx._projNature==='Pop-up store'&&st.type==='n';
+  const T={
+    popup:{fr:"Conception et réalisation de pop-up store (conception, fabrication, installation et démontage)",en:'Turnkey pop-up store production (design, manufacturing, installation and dismantling)'},
+    n:{fr:"Réalisation complète de stand d'exposition (conception, fabrication, location, installation et démontage)",en:'Turnkey exhibition stand production (design, manufacturing, rental, installation and dismantling)'},
+    r:{fr:"Remontage complet de stand d'exposition (déstockage, adaptation, location, installation et démontage)",en:'Full reassembly of an exhibition stand (retrieval from storage, adaptation, rental, installation and dismantling)'},
+    s:{fr:"Conservation d'éléments de stand d'exposition (stockage, manutention, maintenance)",en:'Safekeeping of exhibition stand components (storage, handling, maintenance)'},
+    m:{fr:"Fourniture de mobilier, signalétique & prestations événementielles",en:'Supply of furniture, signage and event services'},
+    en_:{fr:"Conception et réalisation d'aménagement événementiel (conception, fabrication, location, installation et démontage)",en:'Event fit-out production (design, manufacturing, rental, installation and dismantling)'},
+    er:{fr:"Remontage complet d'aménagement événementiel (déstockage, adaptation, location, installation et démontage)",en:'Full reassembly of event fit-outs (retrieval from storage, adaptation, rental, installation and dismantling)'},
+    es:{fr:"Conservation d'éléments d'aménagement événementiel (stockage, manutention, maintenance)",en:'Safekeeping of event fit-out components (storage, handling, maintenance)'}
+  };
+  let k=popup?'popup':st.type;
+  if(ev){if(k==='n')k='en_';else if(k==='r')k='er';else if(k==='s')k='es';}
+  const o=T[k]||T.n;
+  return isEn?o.en:o.fr;
+}
 function sType(ty){st.type=ty;buildCatalogue(_rubRecords,_presRecords);render();}
 function togO(id){const s=st.sections.find(s=>s.id===id);s.open=!s.open;render();}
 function togOff(id){const s=st.sections.find(s=>s.id===id);s.off=!s.off;render();scheduleSave();}
@@ -1661,7 +1693,7 @@ tr.rs td{border-top:0.5px dashed rgba(13,27,42,.2);padding-top:6px}
 
   <div style="text-align:center;padding:14px 0 10px;border-bottom:2px solid var(--gold);margin-bottom:14px">
     <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);letter-spacing:.12em;text-transform:uppercase">${t('titleDoc')}${c.num?` — N° ${esc(c.num)}`:''}</div>
-    <div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:.04em;margin-top:4px;font-style:italic">${(()=>{const sm={r:isEn?'Complete exhibition stand refurbishment (restocking, adaptation, rental, installation and dismantling)':"Remontage complet de stand d'exposition (déstockage, adaptation, location, installation et démontage)",s:isEn?'Exhibition stand element storage (warehousing, handling, maintenance)':"Conservation d'éléments de stand d'exposition (stockage, manutention, maintenance)",m:isEn?'Supply of furniture, signage & event services':"Fourniture de mobilier, signalétique & prestations événementielles"};return sm[st.type]||t('subtitle');})()}</div>
+    <div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:.04em;margin-top:4px;font-style:italic">${docSubtitle(isEn)}</div>
   </div>
   ${(c.cliSociete||c.salonNom)?`<div class="info-strip">
     <div class="info-group">
